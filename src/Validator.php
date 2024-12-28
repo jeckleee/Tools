@@ -244,4 +244,17 @@ class Validator
             }
         }, ['type' => $type]);
     }
+
+    public function isIntval(): Validator
+    {
+        return $this->addRule(function ($fieldName, $fieldValue, $item) {
+            $msg = $item['msg'] ?: '参数:' . $fieldName . '不是整数';
+            if (is_integer($fieldValue)) {
+                self::$output[$fieldName] = intval($fieldValue);
+            } else {
+                throw new self::$customException($msg, self::$errorCode);
+            }
+        });
+    }
+
 }
