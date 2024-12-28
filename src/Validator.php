@@ -14,7 +14,23 @@ class Validator
     private array $rules = [];
     private string $fieldName = '';
     public static array $showAllRules = [
-        'required' => '参数必填,可设置一个默认值',
+        'required' => '字段必填,可设置一个默认值',
+        'stringTrim' => '去除字段两端的空格、制表符、换行符等',
+        'betweenNumber' => '字段的值必须在某个区间',
+        'inArray' => '字段的值必须在数组中',
+        'isArray' => '字段的值必须是数组',
+        'notValidate' => '不验证该字段的值',
+        'isNumber' => '字段的值必须是数字(int or float)',
+        'stringLength' => '字段的值知必须指定范围的长度',
+        'isEmail' => '字段的值必须是邮箱',
+        'isMobile' => '字段的值必须是手机号',
+        'isDateTimeInFormat' => '字段的值必须是指定格式的时间字符串(Ymd-His等)',
+        'isIdCard' => '字段的值必须是身份证号',
+        'isUrl' => '字段的值必须是网址',
+        'isIp' => '字段的值必须是IP地址(ipv4 or ipv6)',
+        'isInt' => '字段的值必须是整数',
+        'withRegex' => '使用正则表达式验证字段',
+        'isBool' => '字段的值必须是布尔值(true or false or "true" or "false")',
     ];
 
 
@@ -151,7 +167,11 @@ class Validator
         return $this->addRule(function ($fieldName, $fieldValue, $item) {
             $msg = $item['err_msg'] ?: '参数:' . $fieldName . '必须是数字';
             if (is_numeric($fieldValue)) {
-                self::$output[$fieldName] = intval($fieldValue);
+                if (is_float($fieldValue)) {
+                    self::$output[$fieldName] = floatval($fieldValue);
+                } else {
+                    self::$output[$fieldName] = intval($fieldValue);
+                }
             } else {
                 throw new self::$customException($msg, $item['err_code']);
             }
@@ -247,7 +267,7 @@ class Validator
         }, ['type' => $type]);
     }
 
-    public function isIntval(): Validator
+    public function isInt(): Validator
     {
         return $this->addRule(function ($fieldName, $fieldValue, $item) {
             $msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是整数';
@@ -269,5 +289,17 @@ class Validator
                 throw new self::$customException($msg, $item['err_code']);
             }
         }, ['pattern' => $pattern]);
+    }
+
+    public function isBool(): Validator
+    {
+        return $this->addRule(function ($fieldName, $fieldValue, $item) {
+            $msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是布尔值';
+            if ($fieldValue === true || $fieldValue === false || $fieldValue === 'true' || $fieldValue === 'false') {
+                self::$output[$fieldName] = $fieldName === 'true' || $fieldName === true;
+            } else {
+                throw new self::$customException($msg, $item['err_code']);
+            }
+        });
     }
 }

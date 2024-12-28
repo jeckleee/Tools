@@ -17,16 +17,26 @@ $post=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com','age'=
 $data=Validator::array($post,[
      //只有写在此数组中的字段才会验证并存储到$data中
      Validator::fieldName('name')->required()->stringTrim()->stringLength(3,32)->msg('请填写正确的用户名'),
+     
+     //使用自定义正则表达式验证
      Validator::fieldName('password')->required()->withRegex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')->msg('要求密码必须包含大写字母、小写字母、数字和特殊字符'),
      Validator::fieldName('email')->required()->isEmail()->msg('请填写正确的邮箱'),
+     
+     //不验证某个字段
+     Validator::fieldName('score')->notValidate()->msg(),
 ]);
-//$data=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com'];age字段不会出现在$data中
+//$data=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com','score'=>null];age字段不会出现在$data中
 
 //验证一个字段
 $data=Validator::one($post,[
      Validator::fieldName('age')->required()->isIntval()->betweenNumber(1,120)->msg('请填写正确的年龄'),
 ]);
 //$data=18
+
+
+//不验证某个字段
+
+
 
 //验证失败会抛出异常
 //自定义异常
