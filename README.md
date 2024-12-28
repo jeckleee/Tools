@@ -38,13 +38,13 @@ $data=Validator::array($post,[
 
 //自定义错误码:有两个位置可以自定义错误码
 $data=Validator::array($post,[
-     //第一种,选填,优先级最高,
+     //第一种,在->msg()方法中定义,选填,优先级最高,
       Validator::fieldName('name')->required()->msg('请填写账号',12001),
       Validator::fieldName('age')->required()->isIntval()->betweenNumber(1,120)->msg('请填写正确的年龄',12002),
 ],MyException::class,12000);//这是第二种
 
 //两种错误码定义的区别
-//工具默认错误码500,如果在使用array或者one方法时,没有定义错误码,异常中的code就是500,
+//默认错误码500,如果在使用array或者one方法时,没有定义错误码,异常中的code就是500,
 //在使用array或者one方法时定义了错误码,异常中的code就是定义的错误码,
 //在规则中的->msg()方法中定义的错误码优先级最高,会覆盖之前所有的定义
 
