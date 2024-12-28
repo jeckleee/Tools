@@ -61,7 +61,7 @@ class Validator
         return $validator;
     }
 
-    public function msg(string $err_msg = '', $err_code = null): array
+    public function verify(string $err_msg = '', $err_code = null): array
     {
         $this->rules['err_msg'] = $err_msg ?: '数据验证失败:' . $this->fieldName;
         $this->rules['err_code'] = $err_code;
@@ -72,6 +72,7 @@ class Validator
     private static function applyRules($rules): void
     {
         foreach ($rules as $rule) {
+            if (!is_array($rule)) throw new self::$customException('请在规则的链式结束后调用->verify()方法', self::$err_code);
             foreach ($rule['list'] as $item) {
                 $function = $item['function'];
                 $fieldName = $rule['fieldName'];
