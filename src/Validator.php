@@ -19,7 +19,6 @@ class Validator
         'betweenNumber' => '字段的值必须在某个区间',
         'inArray' => '字段的值必须在数组中',
         'isArray' => '字段的值必须是数组',
-        'notValidate' => '不验证该字段的值',
         'isNumber' => '字段的值必须是数字(int or float)',
         'stringLength' => '字段的值知必须指定范围的长度',
         'isEmail' => '字段的值必须是邮箱',
@@ -54,7 +53,7 @@ class Validator
         return reset(self::$output);
     }
 
-    public static function fieldName(string $fieldName): Validator
+    public static function field(string $fieldName): Validator
     {
         $validator = new static();
         $validator->fieldName = $fieldName;
@@ -73,14 +72,20 @@ class Validator
     {
         foreach ($rules as $rule) {
             if (!is_array($rule)) throw new self::$customException('请在规则的链式结束后调用->verify()方法', self::$err_code);
-            foreach ($rule['list'] as $item) {
-                $function = $item['function'];
-                $fieldName = $rule['fieldName'];
-                $fieldValue = self::$input[$rule['fieldName']] ?? null;
-                $item['err_msg'] = $rule['err_msg'] ?? '';
-                $item['err_code'] = $rule['err_code'] ?: self::$err_code;
-                $function($fieldName, $fieldValue, $item); // 调用闭包
+            if ($rule['list'] ?? false) {
+                foreach ($rule['list'] as $item) {
+                    $function = $item['function'];
+                    $fieldName = $rule['fieldName'];
+                    $fieldValue = self::$input[$rule['fieldName']] ?? null;
+                    $item['err_msg'] = $rule['err_msg'] ?? '';
+                    $item['err_code'] = $rule['err_code'] ?: self::$err_code;
+                    $function($fieldName, $fieldValue, $item); // 调用闭包
+                }
+            } else {
+                //没有什任何验证规则时
+                self::$output[$rule['fieldName']] = self::$input[$rule['fieldName']] ?? null;
             }
+
         }
     }
 
@@ -155,14 +160,7 @@ class Validator
             }
         });
     }
-
-    public function notValidate(): Validator
-    {
-        return $this->addRule(function ($fieldName, $fieldValue) {
-            self::$output[$fieldName] = $fieldValue ?? null;
-        });
-    }
-
+    
     public function isNumber(): Validator
     {
         return $this->addRule(function ($fieldName, $fieldValue, $item) {
