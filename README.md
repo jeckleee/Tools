@@ -38,10 +38,10 @@ $data=Validator::array($post,[
 
 //自定义错误码:有两个位置可以自定义错误码
 $data=Validator::array($post,[
-     //第一种,在->msg()方法中定义,选填,优先级最高,
+     //第一种,在->msg()方法中定义,选填,适合对每一个字段定义不同的错误码的场景
       Validator::fieldName('name')->required()->msg('请填写账号',12001),
       Validator::fieldName('age')->required()->isIntval()->betweenNumber(1,120)->msg('请填写正确的年龄',12002),
-],MyException::class,12000);//这是第二种
+],MyException::class,12000);//这是第二种,所有的验证失败都用同一个错误码的场景
 
 //两种错误码定义的区别
 //默认错误码500,如果在使用array或者one方法时,没有定义错误码,异常中的code就是500,
