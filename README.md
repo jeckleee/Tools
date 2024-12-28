@@ -17,7 +17,7 @@ $post=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com','age'=
 $data=Validator::array($post,[
      //只有写在此数组中的字段才会验证并存储到$data中
      Validator::fieldName('name')->required()->stringTrim()->stringLength(3,32)->msg('请填写正确的用户名'),
-     Validator::fieldName('password')->required()->stringTrim()->stringLength(6,32)->msg('请填写正确的密码'),
+     Validator::fieldName('password')->required()->withRegex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')->msg('要求密码必须包含大写字母、小写字母、数字和特殊字符'),
      Validator::fieldName('email')->required()->isEmail()->msg('请填写正确的邮箱'),
 ]);
 //$data=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com'];age字段不会出现在$data中
