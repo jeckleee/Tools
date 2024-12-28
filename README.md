@@ -28,6 +28,7 @@ $data=Validator::one($post,[
 ]);
 //$data=18
 
+//验证失败会抛出异常
 //自定义异常和错误码
 $data=Validator::array($post,[
      //......省略

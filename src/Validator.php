@@ -257,4 +257,15 @@ class Validator
         });
     }
 
+    public function withRegex(string $pattern): Validator
+    {
+        return $this->addRule(function ($fieldName, $fieldValue, $item) use ($pattern) {
+            $msg = $item['msg'] ?: '参数:' . $fieldName . '不符合指定的格式';
+            if (preg_match($pattern, $fieldValue)) {
+                self::$output[$fieldName] = $fieldValue;
+            } else {
+                throw new self::$customException($msg, self::$errorCode);
+            }
+        }, ['pattern' => $pattern]);
+    }
 }
