@@ -78,7 +78,7 @@ class Validator
                 $fieldName = $rule['fieldName'];
                 $fieldValue = self::$input[$rule['fieldName']] ?? null;
                 $item['err_msg'] = $rule['err_msg'] ?? '';
-                $item['err_code'] = $rule['err_code'] ?? '';
+                $item['err_code'] = $rule['err_code'] ?: self::$err_code;
                 $function($fieldName, $fieldValue, $item); // 调用闭包
             }
         }
