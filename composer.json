@@ -1,0 +1,22 @@
+{
+    "name": "jeckleee/tools",
+    "description": "一些常用工具:数据验证",
+    "type": "library",
+    "require": {
+        "php": ">7.4",
+        "ext-mbstring": "*"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Jeckleee\\Tools\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "lijian",
+            "email": "976683240@qq.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
