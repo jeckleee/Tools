@@ -34,10 +34,6 @@ $data=Validator::one($post,[
 //$data=18
 
 
-//不验证某个字段
-
-
-
 //验证失败会抛出异常
 //自定义异常
 $data=Validator::array($post,[
