@@ -64,7 +64,7 @@ class Validator
     public function msg(string $err_msg = '', $err_code = null): array
     {
         $this->rules['err_msg'] = $err_msg ?: '数据验证失败:' . $this->fieldName;
-        $this->rules['err_code'] = $err_code ?: self::$err_code;
+        $this->rules['err_code'] = $err_code;
         $this->rules['fieldName'] = $this->fieldName;
         return $this->rules;
     }
