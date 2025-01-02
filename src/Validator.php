@@ -312,35 +312,23 @@ class Validator
             if (!is_numeric($fieldValue)) throw new self::$customException($msg, $item['err_code']);
 
             $res = false;
-            switch ($symbol) {
-                case '>':
-                    $res = $fieldValue > $number;
-                    break;
-                case '>=':
-                    $res = $fieldValue >= $number;
-                    break;
-                case '<':
-                    $res = $fieldValue < $number;
-                    break;
-                case '<=':
-                    $res = $fieldValue <= $number;
-                    break;
-                case '=':
-                    $res = $fieldValue == $number;
-                    break;
-                case '!=':
-                    $res = $fieldValue != $number;
-                    break;
-                default:
-                    throw new self::$customException('不支持的运算符:' . $symbol, $item['err_code']);
-            }
+            $res = match ($symbol) {
+                '>' => $fieldValue > $number,
+                '>=' => $fieldValue >= $number,
+                '<' => $fieldValue < $number,
+                '<=' => $fieldValue <= $number,
+                '=' => $fieldValue == $number,
+                '!=' => $fieldValue != $number,
+                default => throw new self::$customException(
+                    '不支持的运算符: ' . $symbol,
+                    $item['err_code']
+                ),
+            };
             if ($res) {
                 self::$output[$fieldName] = floor($fieldValue) == $fieldValue ? intval($fieldValue) : floatval($fieldValue);
             } else {
                 throw new self::$customException($msg, $item['err_code']);
             }
-
-
         }, ['symbol' => $symbol, 'number' => $number]);
     }
 }
