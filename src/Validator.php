@@ -5,11 +5,6 @@ namespace Jeckleee\Tools;
 use DateTime;
 use Exception;
 
-function dd($data)
-{
-    echo json_encode($data);
-    die;
-}
 
 class Validator
 {
@@ -167,7 +162,7 @@ class Validator
             }
         });
     }
-    
+
     public function isNumber(): Validator
     {
         return $this->addRule(function ($fieldName, $fieldValue, $item) {
