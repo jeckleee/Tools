@@ -5,6 +5,12 @@ namespace Jeckleee\Tools;
 use DateTime;
 use Exception;
 
+function dd($data)
+{
+    echo json_encode($data);
+    die;
+}
+
 class Validator
 {
     private static array $input = [];
@@ -30,6 +36,7 @@ class Validator
         'isInt' => '字段的值必须是整数',
         'withRegex' => '使用正则表达式验证字段',
         'isBool' => '字段的值必须是布尔值(true or false or "true" or "false")',
+        'cmpNumber' => '对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,==',
     ];
 
 
@@ -62,7 +69,7 @@ class Validator
 
     public function verify(string $err_msg = '', $err_code = null): array
     {
-        $this->rules['err_msg'] = $err_msg ?: '数据验证失败:' . $this->fieldName;
+        $this->rules['err_msg'] = $err_msg ?: null;
         $this->rules['err_code'] = $err_code;
         $this->rules['fieldName'] = $this->fieldName;
         return $this->rules;
@@ -300,5 +307,45 @@ class Validator
                 throw new self::$customException($msg, $item['err_code']);
             }
         });
+    }
+
+    public function cmpNumber($symbol, int|float $number): Validator
+    {
+        return $this->addRule(function ($fieldName, $fieldValue, $item) use ($symbol, $number) {
+            $msg = $item['err_msg'] ?: '参数' . $fieldName . '的值:' . $fieldValue . $symbol . $number . ' 不成立';
+
+            if (!is_numeric($fieldValue)) throw new self::$customException($msg, $item['err_code']);
+
+            $res = false;
+            switch ($symbol) {
+                case '>':
+                    $res = $fieldValue > $number;
+                    break;
+                case '>=':
+                    $res = $fieldValue >= $number;
+                    break;
+                case '<':
+                    $res = $fieldValue < $number;
+                    break;
+                case '<=':
+                    $res = $fieldValue <= $number;
+                    break;
+                case '=':
+                    $res = $fieldValue == $number;
+                    break;
+                case '!=':
+                    $res = $fieldValue != $number;
+                    break;
+                default:
+                    throw new self::$customException('不支持的运算符:' . $symbol, $item['err_code']);
+            }
+            if ($res) {
+                self::$output[$fieldName] = floor($fieldValue) == $fieldValue ? intval($fieldValue) : floatval($fieldValue);
+            } else {
+                throw new self::$customException($msg, $item['err_code']);
+            }
+
+
+        }, ['symbol' => $symbol, 'number' => $number]);
     }
 }
