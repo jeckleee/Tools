@@ -23,7 +23,7 @@ $data=Validator::array($post,[
      Validator::field('email')->required()->isEmail()->verify('请填写正确的邮箱'),
      
      //不验证score字段
-     Validator::field('score')>verify(),
+     Validator::field('score')->verify(),
 ]);
 //$data=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com','score'=>null]; //age字段不会出现在$data中
 
