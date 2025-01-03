@@ -8,15 +8,15 @@ use Jeckleee\Tools\Validator as V;
 //die;
 
 $data = V::array([
-    'aa' => 1,
+    'aa' => '10.1',
     'bb' => '12',
     'cc' => '622426199102230071',
     'dd' => 'a',
 ], [
-    V::field('aa')->verify(),
-    V::field('bb')->withRegex('/^[a-zA-Z]+$/')->verify('数据类验证失败'),
-    V::field('cc')->isIdCard()->verify('请填写正确的身份证号'),
-    V::field('ee')->required('eeeee')->verify()
+    V::field('aa')->cmpNumber('=', '10.1')->verify(),
+    //V::field('bb')->withRegex('/^[a-zA-Z]+$/')->verify('数据类验证失败'),
+    //V::field('cc')->isIdCard()->verify('请填写正确的身份证号'),
+    //V::field('ee')->required('eeeee')->verify()
 ], Exception::class, 400);
 
 echo json_encode($data);
