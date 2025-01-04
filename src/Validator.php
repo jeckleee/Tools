@@ -75,10 +75,14 @@ class Validator
 		foreach ($rules as $rule) {
 			if (!is_array($rule)) throw new self::$customException('请在规则的链式结束后调用->verify()方法', self::$err_code);
 			if ($rule['list'] ?? false) {
+
 				foreach ($rule['list'] as $item) {
+                    if (isset($item['function_name'])&&$item['function_name']==='ifExisted'&&!isset(self::$input[$rule['fieldName']])){
+                        break;
+                    }
 					$function = $item['function'];
 					$fieldName = $rule['fieldName'];
-					$fieldValue = self::$input[$rule['fieldName']] ?? null;
+                    $fieldValue = self::$input[$rule['fieldName']] ?? null;
 					$item['err_msg'] = $rule['err_msg'] ?? '';
 					$item['err_code'] = $rule['err_code'] ?: self::$err_code;
 					$function($fieldName, $fieldValue, $item); // 调用闭包
@@ -168,7 +172,7 @@ class Validator
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '必须是数字';
 			if (is_numeric($fieldValue)) {
-				if (is_float($fieldValue)) {
+				if (is_float((float)$fieldValue)) {
 					self::$output[$fieldName] = floatval($fieldValue);
 				} else {
 					self::$output[$fieldName] = intval($fieldValue);
@@ -331,4 +335,16 @@ class Validator
 			}
 		}, ['symbol' => $symbol, 'number' => $number]);
 	}
+
+
+
+    public function ifExisted(): Validator
+    {
+
+        return $this->addRule(function ($fieldName, $fieldValue, $item) {
+            if (self::$input[$fieldName]??false) {
+                self::$output[$fieldName] = $fieldValue;
+            }
+        }, ['function_name'=>'ifExisted']);
+    }
 }
