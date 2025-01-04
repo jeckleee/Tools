@@ -30,7 +30,7 @@ class Validator
 		'isIp' => '字段的值必须是IP地址(ipv4 or ipv6)',
 		'isInt' => '字段的值必须是整数',
 		'withRegex' => '使用正则表达式验证字段',
-		'isBool' => '字段的值必须是布尔值(true or false or "true" or "false")',
+		'isBool' => '字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,为 "0", "false", "off" and "no" 返回 FALSE',
 		'cmpNumber' => '对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=',
 	];
 
@@ -296,8 +296,9 @@ class Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是布尔值';
-			if ($fieldValue === true || $fieldValue === false || $fieldValue === 'true' || $fieldValue === 'false') {
-				self::$output[$fieldName] = $fieldName === 'true' || $fieldName === true;
+            $result=filter_var($fieldValue, FILTER_VALIDATE_BOOLEAN,FILTER_NULL_ON_FAILURE);
+			if ($result===true||$result===false) {
+				self::$output[$fieldName] = $result;
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
 			}
