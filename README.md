@@ -22,8 +22,12 @@ $data=Validator::array($post,[
      Validator::field('password')->required()->withRegex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')->verify('要求密码必须包含大写字母、小写字母、数字和特殊字符'),
      Validator::field('email')->required()->isEmail()->verify('请填写正确的邮箱'),
      
-     //不验证score字段
+     //不验证score字段,如果字段不存在则返回["score"=>null]
      Validator::field('score')->verify(),
+     
+     //存在则验证,如果字段不存在则不验证,也不会出现在最终的数据中
+     Validator::field('score')->ifExisted()->isInt()->betweenNumber(0,100)->verify('请填写正确的分数'),
+     
 ]);
 //$data=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com','score'=>null]; //age字段不会出现在$data中
 
