@@ -31,7 +31,7 @@ class Validator
 		'isInt' => '字段的值必须是整数',
 		'withRegex' => '使用正则表达式验证字段',
 		'isBool' => '字段的值必须是布尔值(true or false or "true" or "false")',
-		'cmpNumber' => '对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,==',
+		'cmpNumber' => '对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=',
 	];
 
 
