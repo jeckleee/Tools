@@ -16,6 +16,8 @@ class Validator
     private string $fieldName = '';
     public static array $showAllRules = [
         'required' => '字段必填,可设置一个默认值',
+        'ifExisted' => '对字段进行判断,如果字段存在,则进行验证',
+
         'stringTrim' => '去除字段两端的空格、制表符、换行符等',
         'betweenNumber' => '字段的值必须在某个区间',
         'inArray' => '字段的值必须在数组中',
@@ -32,6 +34,7 @@ class Validator
         'withRegex' => '使用正则表达式验证字段',
         'isBool' => '字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,为 "0", "false", "off" and "no" 返回 FALSE',
         'cmpNumber' => '对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=',
+
     ];
 
 
@@ -77,7 +80,7 @@ class Validator
             if ($rule['list'] ?? false) {
 
                 foreach ($rule['list'] as $item) {
-                    if (isset($item['function_name']) && $item['function_name'] === 'ifExisted' && !isset(self::$input[$rule['fieldName']])) {
+                    if (isset($item['_function_name']) && $item['_function_name'] === 'ifExisted' && !isset(self::$input[$rule['fieldName']])) {
                         break;
                     }
                     $function = $item['function'];
@@ -343,6 +346,6 @@ class Validator
             if (self::$input[$fieldName] ?? false) {
                 self::$output[$fieldName] = $fieldValue;
             }
-        }, ['function_name' => 'ifExisted']);
+        }, ['_function_name' => 'ifExisted']);
     }
 }
