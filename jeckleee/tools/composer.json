@@ -1,15 +1,15 @@
 {
   "name": "jeckleee/tools",
-  "description": "一些常用工具:数据验证",
   "type": "library",
+  "license": "MIT",
+  "description": "Webman plugin jeckleee/tools",
   "require": {
     "php": ">=8.0",
     "ext-mbstring": "*"
   },
-  "license": "MIT",
   "autoload": {
     "psr-4": {
-      "Jeckleee\\Tools\\": "src/"
+      "Jeckleee\\Tools\\": "src"
     }
   },
   "authors": [
