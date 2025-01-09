@@ -110,7 +110,7 @@ class Validator
     {
         return $this->addRule(function ($fieldName, $fieldValue, $item) use ($defaultValue) {
             $msg = $item['err_msg'] ?: '参数必填:' . $fieldName;
-            if ($fieldValue ?? null) {
+            if (isset(self::$input[$fieldName])) {
                 self::$output[$fieldName] = $fieldValue;
             } elseif ($defaultValue !== null) {
                 self::$input[$fieldName] = $defaultValue;
