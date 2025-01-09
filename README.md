@@ -1,10 +1,28 @@
-# Validator
+# Jeckleee/Tools
 
 一些常用工具:数据验证
 
 ## 安装
 
+```angular2html
 composer require jeckleee/tools
+```
+
+## 配置
+
+```php
+//配置文件: config/plugin/jeckleee/tools/app.php
+
+return [
+    'enable' => true,
+
+    // 定义验证失败以后抛出的异常
+    'exception' => Exception::class,
+
+    // 定义验证失败的错误码
+    'exception_code' => 500,
+];
+```
 
 ## 使用
 
@@ -54,7 +72,7 @@ $data=Validator::array($post,[
 ],MyException::class,12000);//这是第二种,所有的验证失败都用同一个错误码的场景
 
 //两种错误码定义的区别
-//默认错误码500,如果在使用array或者one方法时,没有定义错误码,异常中的code就是500,
+//错误码在配置文件中定义,默认500,如果在使用array或者one方法时,没有定义错误码,异常中的code就是500
 //在使用array或者one方法时定义了错误码,异常中的code就是定义的错误码,
 //在规则中的->verify()方法中定义的错误码优先级最高,会覆盖之前所有的定义
 
