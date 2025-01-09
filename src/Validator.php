@@ -37,11 +37,22 @@ class Validator
 
     ];
 
+    private static function getConfig()
+    {
+        $config = config('config.plugin.jeckleee.tools.app', [
+            // 验证失败以后抛出的异常
+            'exception' => Exception::class,
+            // 验证失败以后抛出的异常错误码
+            'exception_code' => 500,
+        ]);
+        return $config;
+    }
 
     public static function array(array $input, $rules, $customException = null, $err_code = null): array
     {
-        self::$customException = $customException ?: Exception::class;
-        self::$err_code = $err_code ?: self::$err_code;
+        $config = self::getConfig();
+        self::$customException = $customException ?: $config['exception'];
+        self::$err_code = $err_code ?: $config['exception_code'];
         self::$input = $input;
         self::$output = [];
         self::applyRules($rules);
@@ -50,8 +61,9 @@ class Validator
 
     public static function one(array $input, $rules, $customException = null, $err_code = null)
     {
-        self::$customException = $customException ?: Exception::class;
-        self::$err_code = $err_code ?: self::$err_code;
+        $config = self::getConfig();
+        self::$customException = $customException ?: $config['exception'];
+        self::$err_code = $err_code ?: $config['exception_code'];
         self::$input = $input;
         self::$output = [];
         self::applyRules($rules);
