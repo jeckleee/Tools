@@ -34,7 +34,7 @@ $post=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com','age'=
 //验证一组数据
 $data=Validator::array($post,[
      //只有写在此数组中的字段才会验证并存储到$data中
-     Validator::field('name')->required()->stringTrim()->stringLength(3,32)->verify('请填写正确的用户名'),
+     Validator::field('name')->required()->strTrim()->strLength(3,32)->verify('请填写正确的用户名'),
      
      //使用自定义正则表达式验证
      Validator::field('password')->required()->withRegex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')->verify('要求密码必须包含大写字母、小写字母、数字和特殊字符'),

@@ -18,12 +18,12 @@ class Validator
         'required' => '字段必填,可设置一个默认值',
         'ifExisted' => '对字段进行判断,如果字段存在,则进行验证',
 
-        'stringTrim' => '去除字段两端的空格、制表符、换行符等',
+        'strTrim' => '去除字段两端的空格、制表符、换行符等',
         'betweenNumber' => '字段的值必须在某个区间',
         'inArray' => '字段的值必须在数组中',
         'isArray' => '字段的值必须是数组',
         'isNumber' => '字段的值必须是数字(int or float)',
-        'stringLength' => '字段的值知必须指定范围的长度',
+        'strLength' => '字段的值知必须指定范围的长度',
         'isEmail' => '字段的值必须是邮箱',
         'isMobile' => '字段的值必须是手机号',
         'isDateTimeInFormat' => '字段的值必须是指定格式的时间字符串(Ymd-His等)',
@@ -31,8 +31,9 @@ class Validator
         'isUrl' => '字段的值必须是网址',
         'isIp' => '字段的值必须是IP地址(ipv4 or ipv6)',
         'isInt' => '字段的值必须是整数',
-        'withRegex' => '使用正则表达式验证字段',
+        'isFloat' => '字段的值必须是小数,传入参数控制小数位数',
         'isBool' => '字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,为 "0", "false", "off" and "no" 返回 FALSE',
+        'withRegex' => '使用正则表达式验证字段',
         'cmpNumber' => '对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=',
 
     ];
@@ -142,7 +143,7 @@ class Validator
         });
     }
 
-    public function stringTrim(): Validator
+    public function strTrim(): Validator
     {
         return $this->addRule(function ($fieldName, $fieldValue, $item) {
             $msg = $item['err_msg'] ?: '参数:' . $fieldName . '不合法';
@@ -207,7 +208,7 @@ class Validator
         });
     }
 
-    public function stringLength($min = 1, $max = 20): Validator
+    public function strLength($min = 1, $max = 20): Validator
     {
         return $this->addRule(function ($fieldName, $fieldValue, $item) use ($min, $max) {
             $msg = $item['err_msg'] ?: '参数:' . $fieldName . '的长度必须在' . $min . '~' . $max . '之间';
