@@ -12,9 +12,9 @@ $data = V::array([
     'bb' => '12',
     'cc' => '622426199102230071',
     'dd' => 'a',
-//    'fff' => '1.01',
+    'fff' => '1.011',
 ], [
-    V::field('fff')->ifExisted()->isNumber()->verify(),
+    V::field('fff')->ifExisted()->isFloat(2)->verify('请填写3位小数'),
     //V::field('bb')->withRegex('/^[a-zA-Z]+$/')->verify('数据类验证失败'),
     //V::field('cc')->isIdCard()->verify('请填写正确的身份证号'),
     //V::field('ee')->required('eeeee')->verify()

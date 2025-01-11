@@ -39,12 +39,21 @@ class Validator
 
     private static function getConfig()
     {
-        $config = config('config.plugin.jeckleee.tools.app', [
-            // 验证失败以后抛出的异常
-            'exception' => Exception::class,
-            // 验证失败以后抛出的异常错误码
-            'exception_code' => 500,
-        ]);
+        if (function_exists('config')) {
+            $config = config('config.plugin.jeckleee.tools.app', [
+                // 验证失败以后抛出的异常
+                'exception' => Exception::class,
+                // 验证失败以后抛出的异常错误码
+                'exception_code' => 500,
+            ]);
+        } else {
+            $config = [
+                // 验证失败以后抛出的异常
+                'exception' => Exception::class,
+                // 验证失败以后抛出的异常错误码
+                'exception_code' => 500,
+            ];
+        }
         return $config;
     }
 
@@ -298,6 +307,31 @@ class Validator
             }
         });
     }
+
+    public function isFloat(int $decimalPlaces = null): Validator
+    {
+        return $this->addRule(function ($fieldName, $fieldValue, $item) use ($decimalPlaces) {
+            $msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是浮点数';
+
+            // 尝试将字符串转换为浮点数
+            $floatValue = filter_var($fieldValue, FILTER_VALIDATE_FLOAT);
+
+            if ($floatValue === false) {
+                throw new self::$customException($msg, $item['err_code']);
+            }
+
+            if ($decimalPlaces !== null) {
+                // 将浮点数转换为字符串并分割小数部分
+                $parts = explode('.', (string)$floatValue);
+                if (isset($parts[1]) && strlen($parts[1]) > $decimalPlaces) {
+                    throw new self::$customException($msg, $item['err_code']);
+                }
+            }
+
+            self::$output[$fieldName] = $floatValue;
+        });
+    }
+
 
     public function withRegex(string $pattern): Validator
     {
