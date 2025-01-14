@@ -262,8 +262,29 @@ class Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是一个合法的身份证号';
-			$idCardRegex = '/(^[1-9]\d{5}(18|19|([23]\d))\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$)|(^[1-9]\d{5}\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}$)/';
-			if (preg_match($idCardRegex, $fieldValue)) {
+			// 身份证号长度为 15 位或 18 位
+			$pattern = '/^(?:\d{15}|\d{17}[\dxX])$/';
+			if (!preg_match($pattern, $fieldValue)) {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+
+			// 15 位身份证号转换为 18 位
+			if (strlen($fieldValue) === 15) {
+				$fieldValue = substr($fieldValue, 0, 6) . '19' . substr($fieldValue, 6, 9);
+			}
+
+			// 计算校验位
+			$weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+			$checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
+			$sum = 0;
+			for ($i = 0; $i < 17; $i++) {
+				$sum += $weights[$i] * (int)$fieldValue[$i];
+			}
+			$checkCodeIndex = $sum % 11;
+
+			// 验证校验位
+			$lastChar = strtoupper($fieldValue[17]);
+			if ($lastChar === $checkCodes[$checkCodeIndex]) {
 				self::$output[$fieldName] = $fieldValue;
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
