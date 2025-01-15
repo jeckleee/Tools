@@ -2,6 +2,11 @@
   "name": "jeckleee/tools",
   "type": "library",
   "license": "MIT",
+  "keywords": [
+    "webman",
+    "laravel",
+    "validator"
+  ],
   "description": "Webman plugin jeckleee/tools",
   "require": {
     "php": ">=8.0",
