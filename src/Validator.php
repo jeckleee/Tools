@@ -70,6 +70,7 @@ class Validator
 		self::$output = [];
 	}
 
+	//验证方式1:返回数组
 	public static function array(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): array
 	{
 		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
@@ -77,6 +78,7 @@ class Validator
 		return self::$output;
 	}
 
+	//验证方式2:返回单个值
 	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
 	{
 		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
@@ -84,7 +86,7 @@ class Validator
 		return reset(self::$output);
 	}
 
-
+	//验证方式3:自动判断返回验证结果
 	public static function check(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
 	{
 		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
