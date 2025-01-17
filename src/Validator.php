@@ -86,7 +86,7 @@ class Validator
 		return reset(self::$output);
 	}
 
-	//验证方式3:自动判断返回验证结果
+	//验证方式3:自动判断返回验证结果,只有1个字段时返回单个值,否则返回数组
 	public static function check(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
 	{
 		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
