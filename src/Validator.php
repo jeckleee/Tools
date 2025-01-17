@@ -14,6 +14,7 @@ class Validator
 	private static int $err_code = 500;
 	private array $rules = [];
 	private string $fieldName = '';
+	private array $config = [];
 	public static array $showAllRules = [
 		'required' => '字段必填,可设置一个默认值',
 		'ifExisted' => '对字段进行判断,如果字段存在,则进行验证',
@@ -43,40 +44,55 @@ class Validator
 	{
 		// 定义默认配置
 		$config = [
+			// 验证失败以后抛出的异常
 			'exception' => Exception::class,
+			// 验证失败以后抛出的异常错误码
 			'exception_code' => 500,
+			//验证失败错误如何返回 (immediate:立即返回,集中返回:collective)
+			'error_return_mode' => 'immediate'
 		];
 		if (function_exists('config')) {
-			$config = config('config.plugin.jeckleee.tools.app', [
-				// 验证失败以后抛出的异常
-				'exception' => Exception::class,
-				// 验证失败以后抛出的异常错误码
-				'exception_code' => 500,
-			]);
+			$config = config('config.plugin.jeckleee.tools.app', $config);
 		}
 		return $config;
 	}
 
-	public static function array(array $input, $rules, $customException = null, $err_code = null): array
+	private static function initialize(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
 	{
 		$config = self::getConfig();
 		self::$customException = $customException ?: $config['exception'];
 		self::$err_code = $err_code ?: $config['exception_code'];
+
+		if ($error_return_mode && !in_array($error_return_mode, ['immediate', 'collective'])) {
+			throw new self::$customException('error_return_mode参数错误', self::$err_code);
+		}
 		self::$input = $input;
 		self::$output = [];
+	}
+
+	public static function array(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): array
+	{
+		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
 		self::applyRules($rules);
 		return self::$output;
 	}
 
-	public static function one(array $input, $rules, $customException = null, $err_code = null)
+	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
 	{
-		$config = self::getConfig();
-		self::$customException = $customException ?: $config['exception'];
-		self::$err_code = $err_code ?: $config['exception_code'];
-		self::$input = $input;
-		self::$output = [];
+		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
 		self::applyRules($rules);
 		return reset(self::$output);
+	}
+
+
+	public static function check(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
+	{
+		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
+		self::applyRules($rules);
+		if (count($rules) == 1) {
+			return reset(self::$output);
+		}
+		return self::$output;
 	}
 
 	public static function field(string $fieldName): Validator
@@ -96,10 +112,11 @@ class Validator
 
 	private static function applyRules($rules): void
 	{
+		$config = self::getConfig();
+		$collective_error = [];
 		foreach ($rules as $rule) {
 			if (!is_array($rule)) throw new self::$customException('请在规则的链式结束后调用->verify()方法', self::$err_code);
 			if ($rule['list'] ?? false) {
-
 				foreach ($rule['list'] as $item) {
 					if (isset($item['_function_name']) && $item['_function_name'] === 'ifExisted' && !isset(self::$input[$rule['fieldName']])) {
 						break;
@@ -109,13 +126,29 @@ class Validator
 					$fieldValue = self::$input[$rule['fieldName']] ?? null;
 					$item['err_msg'] = $rule['err_msg'] ?? '';
 					$item['err_code'] = $rule['err_code'] ?: self::$err_code;
-					$function($fieldName, $fieldValue, $item); // 调用闭包
+					try {
+						$function($fieldName, $fieldValue, $item); // 调用闭包
+					} catch (Exception $e) {
+						if ($config['error_return_mode'] === 'collective' && $e instanceof $config['exception']) {
+							$collective_error[] = [
+								'fieldName' => $rule['fieldName'],
+								'error_code' => $e->getCode(),
+								'message' => $e->getMessage(),
+							];
+							continue;
+						} else {
+							// 如果不是预期的异常类型,重新抛出
+							throw $e;
+						}
+					}
 				}
 			} else {
-				//没有什任何验证规则时
+				//没有任何验证规则时
 				self::$output[$rule['fieldName']] = self::$input[$rule['fieldName']] ?? null;
 			}
-
+		}
+		if ($collective_error) {
+			throw new self::$customException(json_encode($collective_error), self::$err_code);
 		}
 	}
 
