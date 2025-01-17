@@ -7,7 +7,7 @@ use Jeckleee\Tools\Validator as V;
 //echo json_encode(Validator::fieldName('aa')->isNumber()->betweenNumber(1,10)->msg('数据类验证失败')->rules);
 //die;
 try {
-	$data = V::check([
+	$data = V::array([
 		'aa' => '10.1',
 		'bb' => '12',
 		'cc' => '622426199102230071',

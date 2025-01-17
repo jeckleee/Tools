@@ -57,7 +57,7 @@ class Validator
 		return $config;
 	}
 
-	private static function initialize(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): void
+	private static function initialize(array $input, $customException = null, $err_code = null, $error_return_mode = null): void
 	{
 		$config = self::getConfig();
 		self::$customException = $customException ?: $config['exception'];
@@ -73,7 +73,7 @@ class Validator
 	//验证方式1:返回数组
 	public static function array(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): array
 	{
-		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
+		self::initialize($input, $customException, $err_code, $error_return_mode);
 		self::applyRules($rules);
 		return self::$output;
 	}
@@ -81,7 +81,7 @@ class Validator
 	//验证方式2:返回单个值
 	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
 	{
-		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
+		self::initialize($input, $customException, $err_code, $error_return_mode);
 		self::applyRules($rules);
 		return reset(self::$output);
 	}
@@ -89,7 +89,7 @@ class Validator
 	//验证方式3:自动判断返回验证结果,只有1个字段时返回单个值,否则返回数组
 	public static function check(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
 	{
-		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
+		self::initialize($input, $customException, $err_code, $error_return_mode);
 		self::applyRules($rules);
 		if (count($rules) == 1) {
 			return reset(self::$output);
