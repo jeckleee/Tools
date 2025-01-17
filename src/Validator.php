@@ -20,11 +20,11 @@ class Validator
 		'ifExisted' => '对字段进行判断,如果字段存在,则进行验证',
 
 		'strTrim' => '去除字段两端的空格、制表符、换行符等',
+		'strLength' => '字段的值知必须指定范围的长度',
 		'betweenNumber' => '字段的值必须在某个区间',
 		'inArray' => '字段的值必须在数组中',
 		'isArray' => '字段的值必须是数组',
 		'isNumber' => '字段的值必须是数字(int or float)',
-		'strLength' => '字段的值知必须指定范围的长度',
 		'isEmail' => '字段的值必须是邮箱',
 		'isMobile' => '字段的值必须是手机号',
 		'isDateTimeInFormat' => '字段的值必须是指定格式的时间字符串(Ymd-His等)',
@@ -57,7 +57,7 @@ class Validator
 		return $config;
 	}
 
-	private static function initialize(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
+	private static function initialize(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): void
 	{
 		$config = self::getConfig();
 		self::$customException = $customException ?: $config['exception'];
