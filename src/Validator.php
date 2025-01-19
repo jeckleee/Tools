@@ -12,7 +12,7 @@ class Validator
 	private static array $output = [];
 	private static string|null $customException = null;
 	private static int $err_code = 500;
-	public array $rules = [];
+	private array $rules = [];
 	private string $fieldName = '';
 	private $variable;
 	private array $config = [];
@@ -59,7 +59,7 @@ class Validator
 		return $config;
 	}
 
-	private static function initialize(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): void
+	private static function initialize(array $input, $customException = null, $err_code = null, $error_return_mode = null): void
 	{
 		$config = self::getConfig();
 		self::$customException = $customException ?: $config['exception'];
@@ -75,7 +75,7 @@ class Validator
 	//验证方式1:返回数组
 	public static function array(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): array
 	{
-		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
+		self::initialize($input, $customException, $err_code, $error_return_mode);
 		self::applyRules($rules);
 		return self::$output;
 	}
@@ -83,7 +83,7 @@ class Validator
 	//验证方式2:返回单个值
 	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
 	{
-		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
+		self::initialize($input, $customException, $err_code, $error_return_mode);
 		self::applyRules($rules);
 		return reset(self::$output);
 	}
@@ -139,7 +139,6 @@ class Validator
 		$collective_error = [];
 		foreach ($rules as $rule) {
 			if (!is_array($rule)) throw new self::$customException('请在规则的链式结束后调用->verify()方法', self::$err_code);
-
 			if ($rule['list'] ?? false) {
 				foreach ($rule['list'] as $item) {
 					if (isset($item['_function_name']) && $item['_function_name'] === 'ifExisted' && !isset(self::$input[$rule['fieldName']])) {
