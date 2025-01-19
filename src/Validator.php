@@ -23,6 +23,8 @@ class Validator
 
 		'strTrim' => '去除字段两端的空格、制表符、换行符等',
 		'strLength' => '字段的值知必须指定范围的长度',
+		'strStartWith' => '字段的值必须以指定的字符串开始',
+		'strEndWith' => '字段的值必须以指定的字符串结尾',
 		'betweenNumber' => '字段的值必须在某个区间',
 		'inArray' => '字段的值必须在数组中',
 		'isArray' => '字段的值必须是数组',
@@ -483,6 +485,32 @@ class Validator
 				throw new self::$customException($msg, $item['err_code']);
 			}
 		}, ['to_array' => $to_array]);
+	}
+
+	public function strStartWith($with): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($with) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是以' . $with . '开头';
+			if (str_starts_with($fieldValue, $with)) {
+				self::$output[$fieldName] = $fieldValue;
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+
+		}, ['with' => $with]);
+	}
+
+	public function strEndWith($with): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($with) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是以' . $with . '结尾';
+			if (str_ends_with($fieldValue, $with)) {
+				self::$output[$fieldName] = $fieldValue;
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+
+		}, ['with' => $with]);
 	}
 
 
