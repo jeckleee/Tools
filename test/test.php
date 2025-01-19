@@ -6,19 +6,26 @@ use Jeckleee\Tools\Validator as V;
 
 //echo json_encode(Validator::fieldName('aa')->isNumber()->betweenNumber(1,10)->msg('数据类验证失败')->rules);
 //die;
+$input = [
+	'aa' => '10.1',
+	'bb' => '12',
+	'cc' => '622426199102230071',
+	'dd' => 'a',
+	'ff' => '{"a":1}',
+	'phone' => '17666666666',
+];
+
 try {
-	$data = V::check([
-		'aa' => '10.1',
-		'bb' => '12',
-		'cc' => '622426199102230071',
-		'dd' => 'a',
-		'ff' => '{"a":1}',
-	], [
+	$data = V::array($input, [
 		V::field('cc')->ifExisted()->isIdCard()->verify('请填写正确的身份证号', 300),
 		V::field('ff')->isJson()->verify('必须是json字符串', 301),
-		//V::field('cc')->isIdCard()->verify('请填写正确的身份证号'),
-		//V::field('ee')->required('eeeee')->verify()
+		V::field('cc')->isIdCard()->verify('请填写正确的身份证号'),
+		V::field('ee')->required('eeeee')->verify(),
 	]);
+//echo json_encode($data);
+
+	$res = V::var($input['phone'])->required()->cmpNumber('>', 1)->check();
+	var_dump($res);
 
 	echo json_encode($data);
 } catch (\Exception $e) {
