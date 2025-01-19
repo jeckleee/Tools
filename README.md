@@ -21,10 +21,16 @@ return [
 
     // 定义验证失败的错误码
     'exception_code' => 500,
+    
+    //验证失败错误如何返回(immediate,collective)
+    //immediate:立即返回,只要验证出现错误,立即抛出当前错误的字段的异常信息,不再验证剩余的字段
+	//collective:集中返回,验证全部字段,收集所有异常,验证结束后在异常$e->$e->getMessage()中返回错误字段的json字符串
+	'error_return_mode' => 'immediate',
+	
 ];
 ```
 
-## 使用
+## 使用场景1:常规验证表单提交的数据
 
 ```php
 use Jeckleee\Tools\Validator
@@ -61,7 +67,7 @@ $data=Validator::one($post,[
 $data=Validator::array($post,[
      //......省略
 ],MyException::class);
-//如果不定义异常类，则使用默认的Exception::class
+//如果不定义异常类，则使用配置文件中定义的异常
 
 
 //自定义错误码:有两个位置可以自定义错误码
@@ -71,13 +77,33 @@ $data=Validator::array($post,[
       Validator::field('age')->required()->isInt()->betweenNumber(1,120)->verify('请填写正确的年龄',12002),
 ],MyException::class,12000);//这是第二种,所有的验证失败都用同一个错误码的场景
 
-//两种错误码定义的区别
-//错误码在配置文件中定义,默认500,如果在使用array或者one方法时,没有定义错误码,异常中的code就是500
-//在使用array或者one方法时定义了错误码,异常中的code就是定义的错误码,
-//在规则中的->verify()方法中定义的错误码优先级最高,会覆盖之前所有的定义
+//三种异常定义的区别:
+//1.在配置文件中定义异常和错误码,优先级最低
+//2.在使用array()或者one()方法时定义异常和错误码,会覆盖配置文件中定义的异常
+//3.在规则中的->verify()方法中定义的异常和错误码优级最高,会覆盖之前所有的定义
 
 
 //查看全部可用的验证规则
 echo json_decode(Validator::$showAllRules);
 
+```
+
+## 使用场景2: 验证变量是否正确,返回(bool) TURE or FALSE
+
+```php
+use Jeckleee\Tools\Validator
+
+$phone='123456789';
+
+if (Validator::var($phone)->isMobile()->check()){
+    echo '手机号码正确';
+}else{
+    echo '手机号码不正确'
+}
+```
+
+## 注意事项
+
+```angular2html
+1.
 ```
