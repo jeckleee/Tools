@@ -62,15 +62,14 @@ $data=Validator::one($post,[
 //$data=18
 
 
-//验证失败会抛出异常
-//自定义异常
+//自定义验证失败的异常
 $data=Validator::array($post,[
      //......省略
 ],MyException::class);
 //如果不定义异常类，则使用配置文件中定义的异常
 
 
-//自定义错误码:有两个位置可以自定义错误码
+//自定义错误码
 $data=Validator::array($post,[
      //第一种,在->verify()方法中定义,选填,适合对每一个字段定义不同的错误码的场景
       Validator::field('name')->required()->verify('请填写账号',12001),
