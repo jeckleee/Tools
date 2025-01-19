@@ -12,9 +12,11 @@ class Validator
 	private static array $output = [];
 	private static string|null $customException = null;
 	private static int $err_code = 500;
-	private array $rules = [];
+	public array $rules = [];
 	private string $fieldName = '';
+	private $variable;
 	private array $config = [];
+	private string $working_mode = '';
 	public static array $showAllRules = [
 		'required' => '字段必填,可设置一个默认值',
 		'ifExisted' => '对字段进行判断,如果字段存在,则进行验证',
@@ -86,21 +88,40 @@ class Validator
 		return reset(self::$output);
 	}
 
-	//验证方式3:自动判断返回验证结果,只有1个字段时返回单个值,否则返回数组
-	public static function check(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
+
+	public function check()
 	{
-		self::initialize($input, $rules, $customException, $err_code, $error_return_mode);
-		self::applyRules($rules);
-		if (count($rules) == 1) {
-			return reset(self::$output);
+		$config = self::getConfig();
+		if ($this->working_mode !== 'var') {
+			throw new self::$customException('使用方法不正确,请使用var()方法后调用check()方法', self::$err_code);
 		}
-		return self::$output;
+		try {
+			$this->rules['fieldName'] = 'check_variable';
+			self::initialize(['check_variable' => $this->variable], $this->rules);
+			self::applyRules([$this->rules]);
+			return true;
+		} catch (Exception $e) {
+			if ($e instanceof $config['exception']) {
+				return false;
+			} else {
+				throw $e;
+			}
+		}
 	}
 
 	public static function field(string $fieldName): Validator
 	{
 		$validator = new static();
 		$validator->fieldName = $fieldName;
+		return $validator;
+	}
+
+	public static function var($variable): static
+	{
+		$validator = new static();
+		$validator::$input = ['check_variable' => $variable];
+		$validator->variable = $variable;
+		$validator->working_mode = 'var';
 		return $validator;
 	}
 
@@ -118,6 +139,7 @@ class Validator
 		$collective_error = [];
 		foreach ($rules as $rule) {
 			if (!is_array($rule)) throw new self::$customException('请在规则的链式结束后调用->verify()方法', self::$err_code);
+
 			if ($rule['list'] ?? false) {
 				foreach ($rule['list'] as $item) {
 					if (isset($item['_function_name']) && $item['_function_name'] === 'ifExisted' && !isset(self::$input[$rule['fieldName']])) {
@@ -127,7 +149,7 @@ class Validator
 					$fieldName = $rule['fieldName'];
 					$fieldValue = self::$input[$rule['fieldName']] ?? null;
 					$item['err_msg'] = $rule['err_msg'] ?? '';
-					$item['err_code'] = $rule['err_code'] ?: self::$err_code;
+					$item['err_code'] = $rule['err_code'] ?? self::$err_code;
 					try {
 						$function($fieldName, $fieldValue, $item); // 调用闭包
 					} catch (Exception $e) {
@@ -418,7 +440,7 @@ class Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($symbol, $number) {
 			$msg = $item['err_msg'] ?: '参数' . $fieldName . '的值:' . $fieldValue . $symbol . $number . ' 不成立';
-
+			
 			if (!is_numeric($fieldValue)) throw new self::$customException($msg, $item['err_code']);
 
 			$res = match ($symbol) {
