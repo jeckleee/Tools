@@ -96,8 +96,8 @@ class Validator
 			throw new self::$customException('使用方法不正确,请使用var()方法后调用check()方法', self::$err_code);
 		}
 		try {
-			$this->rules['fieldName'] = 'check_variable';
-			self::initialize(['check_variable' => $this->variable], $this->rules);
+			$this->rules['fieldName'] = 'check_variable_check';
+			self::initialize(['check_variable_check' => $this->variable], $this->rules);
 			self::applyRules([$this->rules]);
 			return true;
 		} catch (Exception $e) {
@@ -119,7 +119,7 @@ class Validator
 	public static function var($variable): static
 	{
 		$validator = new static();
-		$validator::$input = ['check_variable' => $variable];
+		$validator::$input = ['check_variable_check' => $variable];
 		$validator->variable = $variable;
 		$validator->working_mode = 'var';
 		return $validator;
@@ -440,7 +440,7 @@ class Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($symbol, $number) {
 			$msg = $item['err_msg'] ?: '参数' . $fieldName . '的值:' . $fieldValue . $symbol . $number . ' 不成立';
-			
+
 			if (!is_numeric($fieldValue)) throw new self::$customException($msg, $item['err_code']);
 
 			$res = match ($symbol) {
