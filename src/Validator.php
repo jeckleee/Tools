@@ -18,33 +18,48 @@ class Validator
 	private array $config = [];
 	private string $working_mode = '';
 	public static array $showAllRules = [
+		//基础
 		'required' => '字段必填,可设置一个默认值',
 		'ifExisted' => '对字段进行判断,如果字段存在,则进行验证',
-
+		
+		//字符串相关
 		'strTrim' => '去除字段两端的空格、制表符、换行符等',
 		'strLength' => '字段的值知必须指定范围的长度',
 		'strStartWith' => '字段的值必须以指定的字符串开始',
 		'strEndWith' => '字段的值必须以指定的字符串结尾',
+		'strAlpha'=> '字段的值只能由字母组成',
+		'strAlphaNum'=> '字段的值只能由字母和数字组成',
+		
+		
+		//数字相关
 		'betweenNumber' => '字段的值必须在某个区间',
-		'inArray' => '字段的值必须在数组中',
-		'isArray' => '字段的值必须是数组',
+		'cmpNumber' => '对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=',
 		'isNumber' => '字段的值必须是数字(int or float)',
+		'isInt' => '字段的值必须是整数',
+		'isFloat' => '字段的值必须是小数,传入参数控制小数位数',
+		
+		//数组相关
+		'inArray' => '字段的值必须在数组中',
+		'notInArray' => '字段的值必须在数组中',
+		'isArray' => '字段的值必须是数组',
+		
+		//常用
 		'isEmail' => '字段的值必须是邮箱',
 		'isMobile' => '字段的值必须是手机号',
 		'isDateTimeInFormat' => '字段的值必须是指定格式的时间字符串(Ymd-His等)',
 		'isIdCard' => '字段的值必须是身份证号',
 		'isUrl' => '字段的值必须是网址',
 		'isIp' => '字段的值必须是IP地址(ipv4 or ipv6)',
-		'isInt' => '字段的值必须是整数',
-		'isFloat' => '字段的值必须是小数,传入参数控制小数位数',
+		
+		//其他
 		'isBool' => '字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,为 "0", "false", "off" and "no" 返回 FALSE',
 		'isJson' => '字段的值必须是一个json字符串,允许传入参数将其转为Array',
 		'withRegex' => '使用正则表达式验证字段',
-		'cmpNumber' => '对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=',
+		
 
 	];
 
-	private static function getConfig()
+	private static function getConfig():array
 	{
 		// 定义默认配置
 		$config = [
@@ -60,7 +75,70 @@ class Validator
 		}
 		return $config;
 	}
-
+	
+	
+	//验证方式1:返回数组
+	public static function array(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): array
+	{
+		self::initialize($input, $customException, $err_code, $error_return_mode);
+		self::applyRules($rules);
+		return self::$output;
+	}
+	
+	//验证方式2:返回字段的值
+	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
+	{
+		self::initialize($input, $customException, $err_code, $error_return_mode);
+		self::applyRules($rules);
+		return reset(self::$output);
+	}
+	
+	public static function field(string $fieldName): Validator
+	{
+		$validator = new static();
+		$validator->fieldName = $fieldName;
+		return $validator;
+	}
+	
+	public function verify(string $err_msg = '', $err_code = null): array
+	{
+		$this->rules['err_msg'] = $err_msg ?: null;
+		$this->rules['err_code'] = $err_code;
+		$this->rules['fieldName'] = $this->fieldName;
+		return $this->rules;
+	}
+	
+	
+	public static function var($variable): static
+	{
+		$validator = new static();
+		$validator::$input = ['check_variable_check' => $variable];
+		$validator->variable = $variable;
+		$validator->working_mode = 'var';
+		return $validator;
+	}
+	
+	public function check(): bool
+	{
+		$config = self::getConfig();
+		if ($this->working_mode !== 'var') {
+			throw new self::$customException('使用方法不正确,请使用var()方法后调用check()方法', self::$err_code);
+		}
+		try {
+			$this->rules['fieldName'] = 'check_variable_check';
+			self::initialize(['check_variable_check' => $this->variable]);
+			self::applyRules([$this->rules]);
+			return true;
+		} catch (Exception $e) {
+			if ($e instanceof $config['exception']) {
+				return false;
+			} else {
+				throw $e;
+			}
+		}
+	}
+	
+	
 	private static function initialize(array $input, $customException = null, $err_code = null, $error_return_mode = null): void
 	{
 		$config = self::getConfig();
@@ -74,68 +152,8 @@ class Validator
 		self::$output = [];
 	}
 
-	//验证方式1:返回数组
-	public static function array(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): array
-	{
-		self::initialize($input, $customException, $err_code, $error_return_mode);
-		self::applyRules($rules);
-		return self::$output;
-	}
 
-	//验证方式2:返回单个值
-	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
-	{
-		self::initialize($input, $customException, $err_code, $error_return_mode);
-		self::applyRules($rules);
-		return reset(self::$output);
-	}
-
-
-	public function check()
-	{
-		$config = self::getConfig();
-		if ($this->working_mode !== 'var') {
-			throw new self::$customException('使用方法不正确,请使用var()方法后调用check()方法', self::$err_code);
-		}
-		try {
-			$this->rules['fieldName'] = 'check_variable_check';
-			self::initialize(['check_variable_check' => $this->variable], $this->rules);
-			self::applyRules([$this->rules]);
-			return true;
-		} catch (Exception $e) {
-			if ($e instanceof $config['exception']) {
-				return false;
-			} else {
-				throw $e;
-			}
-		}
-	}
-
-	public static function field(string $fieldName): Validator
-	{
-		$validator = new static();
-		$validator->fieldName = $fieldName;
-		return $validator;
-	}
-
-	public static function var($variable): static
-	{
-		$validator = new static();
-		$validator::$input = ['check_variable_check' => $variable];
-		$validator->variable = $variable;
-		$validator->working_mode = 'var';
-		return $validator;
-	}
-
-	public function verify(string $err_msg = '', $err_code = null): array
-	{
-		$this->rules['err_msg'] = $err_msg ?: null;
-		$this->rules['err_code'] = $err_code;
-		$this->rules['fieldName'] = $this->fieldName;
-		return $this->rules;
-	}
-
-	private static function applyRules($rules): void
+	private static function applyRules(array $rules): void
 	{
 		$config = self::getConfig();
 		$collective_error = [];
@@ -177,7 +195,7 @@ class Validator
 		}
 	}
 
-	private function addRule(callable $function, $additionalParams = []): Validator
+	private function addRule(callable $function, array $additionalParams = []): Validator
 	{
 		$this->rules['list'][] = array_merge([
 			'function' => $function,
@@ -185,15 +203,15 @@ class Validator
 		return $this;
 	}
 
-	public function required($defaultValue = null): Validator
+	public function required($def = null): Validator
 	{
-		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($defaultValue) {
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($def) {
 			$msg = $item['err_msg'] ?: '参数必填:' . $fieldName;
 			if (isset(self::$input[$fieldName])) {
 				self::$output[$fieldName] = $fieldValue;
-			} elseif ($defaultValue !== null) {
-				self::$input[$fieldName] = $defaultValue;
-				self::$output[$fieldName] = $defaultValue;
+			} elseif ($def !== null) {
+				self::$input[$fieldName] = $def;
+				self::$output[$fieldName] = $def;
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
 			}
@@ -230,6 +248,17 @@ class Validator
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($array) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '仅允许在(' . implode(',', $array) . ')中';
 			if (in_array($fieldValue, $array)) {
+				self::$output[$fieldName] = $fieldValue;
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+		}, ['array' => $array]);
+	}
+	public function notInArray($array): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($array) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不允许在(' . implode(',', $array) . ')中';
+			if (!in_array($fieldValue, $array)) {
 				self::$output[$fieldName] = $fieldValue;
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
@@ -276,6 +305,28 @@ class Validator
 				throw new self::$customException($msg, $item['err_code']);
 			}
 		}, ['min' => $min, 'max' => $max]);
+	}
+	public function strAlpha (): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '只能由字母组成';
+			if (preg_match('/^[a-zA-Z]+$/', $fieldValue)) {
+				self::$output[$fieldName] = $fieldValue;
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+		});
+	}
+	public function strAlphaNum (): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '只能由字母和数字组成';
+			if (preg_match('/^[a-zA-Z0-9]+$/', $fieldValue)) {
+				self::$output[$fieldName] = $fieldValue;
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+		});
 	}
 
 	public function isEmail(): Validator
@@ -512,6 +563,18 @@ class Validator
 
 		}, ['with' => $with]);
 	}
-
-
+	
+	public function fun(callable $function): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($function) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不符合指定的格式';
+			$result = $function($fieldValue);
+			if ($result === true) {
+				self::$output[$fieldName] = $fieldValue;
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+		});
+	
+	}
 }
