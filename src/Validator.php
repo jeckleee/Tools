@@ -27,8 +27,8 @@ class Validator
 		'strLength' => '字段的值知必须指定范围的长度',
 		'strStartWith' => '字段的值必须以指定的字符串开始',
 		'strEndWith' => '字段的值必须以指定的字符串结尾',
-		'strAlpha'=> '字段的值只能由字母组成',
-		'strAlphaNum'=> '字段的值只能由字母和数字组成',
+		'strAlpha' => '字段的值只能由字母组成',
+		'strAlphaNum' => '字段的值只能由字母和数字组成,$type==true时要求必须同时包含字母和数字',
 		
 		
 		//数字相关
@@ -55,11 +55,11 @@ class Validator
 		'isBool' => '字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,为 "0", "false", "off" and "no" 返回 FALSE',
 		'isJson' => '字段的值必须是一个json字符串,允许传入参数将其转为Array',
 		'withRegex' => '使用正则表达式验证字段',
-		
-
+	
+	
 	];
-
-	private static function getConfig():array
+	
+	private static function getConfig(): array
 	{
 		// 定义默认配置
 		$config = [
@@ -144,15 +144,15 @@ class Validator
 		$config = self::getConfig();
 		self::$customException = $customException ?: $config['exception'];
 		self::$err_code = $err_code ?: $config['exception_code'];
-
+		
 		if ($error_return_mode && !in_array($error_return_mode, ['immediate', 'collective'])) {
 			throw new self::$customException('error_return_mode参数错误', self::$err_code);
 		}
 		self::$input = $input;
 		self::$output = [];
 	}
-
-
+	
+	
 	private static function applyRules(array $rules): void
 	{
 		$config = self::getConfig();
@@ -194,7 +194,7 @@ class Validator
 			throw new self::$customException(json_encode($collective_error), self::$err_code);
 		}
 	}
-
+	
 	private function addRule(callable $function, array $additionalParams = []): Validator
 	{
 		$this->rules['list'][] = array_merge([
@@ -202,7 +202,7 @@ class Validator
 		], $additionalParams);
 		return $this;
 	}
-
+	
 	public function required($def = null): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($def) {
@@ -217,7 +217,7 @@ class Validator
 			}
 		});
 	}
-
+	
 	public function strTrim(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -230,11 +230,11 @@ class Validator
 			}
 		});
 	}
-
+	
 	public function betweenNumber(int $min, int $max): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($min, $max) {
-			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '必须在' . $min . '-' . $max . '之间';
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '必须在' . $min . '~' . $max . '之间';
 			if ($fieldValue >= $min && $fieldValue <= $max) {
 				self::$output[$fieldName] = $fieldValue;
 			} else {
@@ -242,7 +242,7 @@ class Validator
 			}
 		}, ['min' => $min, 'max' => $max]);
 	}
-
+	
 	public function inArray($array): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($array) {
@@ -254,6 +254,7 @@ class Validator
 			}
 		}, ['array' => $array]);
 	}
+	
 	public function notInArray($array): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($array) {
@@ -265,7 +266,7 @@ class Validator
 			}
 		}, ['array' => $array]);
 	}
-
+	
 	public function isArray(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -277,7 +278,7 @@ class Validator
 			}
 		});
 	}
-
+	
 	public function isNumber(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -293,11 +294,12 @@ class Validator
 			}
 		});
 	}
-
-	public function strLength($min = 1, $max = 20): Validator
+	
+	public function strLength(int $min = 1, int $max = 32): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($min, $max) {
-			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '的长度必须在' . $min . '~' . $max . '之间';
+			$_msg = $min === $max ? '为' . $min . '个字符' : '在' . $min . '~' . $max . '个字符之间';
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '的长度必须' . $_msg;
 			$length = mb_strlen($fieldValue, 'utf-8');
 			if ($length >= $min && $length <= $max) {
 				self::$output[$fieldName] = $fieldValue;
@@ -306,7 +308,8 @@ class Validator
 			}
 		}, ['min' => $min, 'max' => $max]);
 	}
-	public function strAlpha (): Validator
+	
+	public function strAlpha(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '只能由字母组成';
@@ -317,18 +320,22 @@ class Validator
 			}
 		});
 	}
-	public function strAlphaNum (): Validator
+	
+	public function strAlphaNum($type = false): Validator
 	{
-		return $this->addRule(function ($fieldName, $fieldValue, $item) {
-			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '只能由字母和数字组成';
-			if (preg_match('/^[a-zA-Z0-9]+$/', $fieldValue)) {
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($type) {
+			$pattern = $type ? '/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/' : '/^[a-zA-Z0-9]+$/';
+			$defaultMsg = $type ? '参数:' . $fieldName . '必须同时包含字母和数字' : '参数:' . $fieldName . '由字母和数字组成';
+			$msg = $item['err_msg'] ?: $defaultMsg;
+			
+			if (preg_match($pattern, $fieldValue)) {
 				self::$output[$fieldName] = $fieldValue;
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
 			}
 		});
 	}
-
+	
 	public function isEmail(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -340,7 +347,7 @@ class Validator
 			}
 		});
 	}
-
+	
 	public function isMobile(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -353,7 +360,7 @@ class Validator
 			}
 		});
 	}
-
+	
 	public function isDateTimeInFormat($format): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($format) {
@@ -366,7 +373,7 @@ class Validator
 			}
 		}, ['format' => $format]);
 	}
-
+	
 	public function isIdCard(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -376,12 +383,12 @@ class Validator
 			if (!preg_match($pattern, $fieldValue)) {
 				throw new self::$customException($msg, $item['err_code']);
 			}
-
+			
 			// 15 位身份证号转换为 18 位
 			if (strlen($fieldValue) === 15) {
 				$fieldValue = substr($fieldValue, 0, 6) . '19' . substr($fieldValue, 6, 9);
 			}
-
+			
 			// 计算校验位
 			$weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
 			$checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
@@ -390,7 +397,7 @@ class Validator
 				$sum += $weights[$i] * (int)$fieldValue[$i];
 			}
 			$checkCodeIndex = $sum % 11;
-
+			
 			// 验证校验位
 			$lastChar = strtoupper($fieldValue[17]);
 			if ($lastChar === $checkCodes[$checkCodeIndex]) {
@@ -400,7 +407,7 @@ class Validator
 			}
 		});
 	}
-
+	
 	public function isUrl(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -412,7 +419,7 @@ class Validator
 			}
 		});
 	}
-
+	
 	public function isIp($type = 'ipv4'): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($type) {
@@ -425,7 +432,7 @@ class Validator
 			}
 		}, ['type' => $type]);
 	}
-
+	
 	public function isInt(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -437,19 +444,19 @@ class Validator
 			}
 		});
 	}
-
+	
 	public function isFloat(int $decimalPlaces = null): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($decimalPlaces) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是浮点数';
-
+			
 			// 尝试将字符串转换为浮点数
 			$floatValue = filter_var($fieldValue, FILTER_VALIDATE_FLOAT);
-
+			
 			if ($floatValue === false) {
 				throw new self::$customException($msg, $item['err_code']);
 			}
-
+			
 			if ($decimalPlaces !== null) {
 				// 将浮点数转换为字符串并分割小数部分
 				$parts = explode('.', (string)$floatValue);
@@ -457,12 +464,12 @@ class Validator
 					throw new self::$customException($msg, $item['err_code']);
 				}
 			}
-
+			
 			self::$output[$fieldName] = $floatValue;
 		});
 	}
-
-
+	
+	
 	public function withRegex(string $pattern): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($pattern) {
@@ -474,7 +481,7 @@ class Validator
 			}
 		}, ['pattern' => $pattern]);
 	}
-
+	
 	public function isBool(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -487,14 +494,14 @@ class Validator
 			}
 		});
 	}
-
+	
 	public function cmpNumber($symbol, int|float $number): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($symbol, $number) {
 			$msg = $item['err_msg'] ?: '参数' . $fieldName . '的值:' . $fieldValue . $symbol . $number . ' 不成立';
-
+			
 			if (!is_numeric($fieldValue)) throw new self::$customException($msg, $item['err_code']);
-
+			
 			$res = match ($symbol) {
 				'>' => $fieldValue > $number,
 				'>=' => $fieldValue >= $number,
@@ -514,8 +521,8 @@ class Validator
 			}
 		}, ['symbol' => $symbol, 'number' => $number]);
 	}
-
-
+	
+	
 	public function ifExisted(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
@@ -524,7 +531,7 @@ class Validator
 			}
 		}, ['_function_name' => 'ifExisted']);
 	}
-
+	
 	public function isJson($to_array = false): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($to_array) {
@@ -537,7 +544,7 @@ class Validator
 			}
 		}, ['to_array' => $to_array]);
 	}
-
+	
 	public function strStartWith($with): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($with) {
@@ -547,10 +554,10 @@ class Validator
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
 			}
-
+			
 		}, ['with' => $with]);
 	}
-
+	
 	public function strEndWith($with): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($with) {
@@ -560,7 +567,7 @@ class Validator
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
 			}
-
+			
 		}, ['with' => $with]);
 	}
 	
@@ -575,6 +582,6 @@ class Validator
 				throw new self::$customException($msg, $item['err_code']);
 			}
 		});
-	
+		
 	}
 }
