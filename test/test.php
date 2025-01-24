@@ -35,7 +35,7 @@ try {
 			
 			return false;
 		})->verify(),
-		V::field('xxx')->strAlphaNum()->strTrim()->strLength(2, 100)->verify(),
+		V::field('xxx')->strAlphaNum()->strTrim()->strLength(2, 100)->isDateTimeInFormat('Y-m')->verify(),
 	]);
 //echo json_encode($data);
 	

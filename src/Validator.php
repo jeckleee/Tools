@@ -28,7 +28,7 @@ class Validator
 		'strStartWith' => '字段的值必须以指定的字符串开始',
 		'strEndWith' => '字段的值必须以指定的字符串结尾',
 		'strAlpha' => '字段的值只能由字母组成',
-		'strAlphaNum' => '字段的值只能由字母和数字组成,$type==true时要求必须同时包含字母和数字',
+		'strAlphaNum' => '字段的值只能由字母和数字组成,$type=true时要求必须同时包含字母和数字',
 		
 		
 		//数字相关
@@ -351,7 +351,7 @@ class Validator
 	public function isMobile(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
-			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是一个合法的手机号';
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是一个合法的中国大陆手机号';
 			$phoneRegex = '/^1[3-9]\d{9}$/';
 			if (preg_match($phoneRegex, $fieldValue)) {
 				self::$output[$fieldName] = $fieldValue;
@@ -364,7 +364,7 @@ class Validator
 	public function isDateTimeInFormat($format): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($format) {
-			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是一个合法的时间字符串.(' . $format . ')';
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是一个合法的时间字符串.(' . date($format) . ')';
 			$d = DateTime::createFromFormat($format, $fieldValue);
 			if ($d && $d->format($format) === $fieldValue) {
 				self::$output[$fieldName] = $fieldValue;
