@@ -139,8 +139,8 @@ class Tool
 	public static function diffDateDays(string $date1, string $date2): int
 	{
 		// 将日期字符串转换为 DateTime 对象
-		$dateTime1 = new \DateTime($date1);
-		$dateTime2 = new \DateTime($date2);
+		$dateTime1 = new DateTime($date1);
+		$dateTime2 = new DateTime($date2);
 		
 		// 计算两个日期之间的差值
 		$interval = $dateTime1->diff($dateTime2);
