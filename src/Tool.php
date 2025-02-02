@@ -122,7 +122,11 @@ class Tool
 		return $data;
 	}
 	
-	
+	/**
+	 * @param $length
+	 * @return string
+	 * @throws \Random\RandomException
+	 */
 	public static function getRandomString($length): string
 	{
 		$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_';
@@ -135,7 +139,12 @@ class Tool
 	}
 	
 	
-	//判断两个日期相差几天
+	/**
+	 * @param string $date1
+	 * @param string $date2
+	 * @return int
+	 * @throws \DateMalformedStringException
+	 */
 	public static function diffDateDays(string $date1, string $date2): int
 	{
 		// 将日期字符串转换为 DateTime 对象
