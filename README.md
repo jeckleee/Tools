@@ -55,6 +55,14 @@ $data=Validator::array($post,[
 ]);
 //$data=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com','score'=>null]; //age字段不会出现在$data中
 
+// 按需使用 extract 函数将关联数组转换为变量
+extract($data);
+// 现在可以使用这些变量了
+echo $name; // 输出: jeckleee
+echo $password;  // 输出: 123456
+echo email; // 输出: jeckleee@qq.com
+
+
 //验证一个字段
 $data=Validator::one($post,[
      Validator::field('age')->required()->isInt()->betweenNumber(1,120)->verify('请填写正确的年龄'),
