@@ -8,8 +8,8 @@ use Exception;
 
 class Tool
 {
-	
-	
+
+
 	private static function getConfig(): array
 	{
 		// 定义默认配置
@@ -26,29 +26,16 @@ class Tool
 		}
 		return $config;
 	}
-	
-	
+
+
 	/**
-	 * @param $phone
-	 * @return bool
+	 * 二维数组根据字段进行绑定到唯一键
+	 * @params array $array 需要绑定的数组
+	 * @params string $key 绑定的键
+	 * @param array $array
+	 * @param $key
+	 * @return array
 	 */
-	public static function checkPhone($phone): bool
-	{
-		$phoneRegex = '/^1[3-9]\d{9}$/';
-		if (preg_match($phoneRegex, $phone)) {
-			return true;
-		}
-		return false;
-	}
-	
-	public static function checkEmail($email): bool
-	{
-		if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			return true;
-		}
-		return false;
-	}
-	
 	public static function arrayBindKey(array $array, $key): array
 	{
 		$newArray = [];
@@ -61,7 +48,7 @@ class Tool
 		}
 		return $newArray;
 	}
-	
+
 	/**
 	 * 二维数组根据字段进行排序
 	 * @params array $array 需要排序的数组
@@ -91,38 +78,40 @@ class Tool
 				$arrSort[$key][$uniqid] = $value;
 			}
 		}
-		
+
 		// 如果指定的字段不存在于排序数组中，抛出异常
 		if (!array_key_exists($field, $arrSort)) {
 			throw new  $config['exception']("字段 '$field' 在数组中不存在，无法进行排序。");
 		}
 		// 使用array_multisort进行排序
 		array_multisort($arrSort[$field], constant($sort), $array);
-		
+
 		return $array;
 	}
-	
+
 	/**
-	 * @param array $items
+	 * 生成树形结构
+	 * @param array $list
 	 * @param string $union_field 唯一标识字段名
 	 * @param string $parent_field 父级字段名
 	 * @param string $children_field 自定义子级字段名,比如children/son等
 	 * @return array
 	 */
-	public static function generateTree(array $items, string $union_field = 'id', string $parent_field = 'p_id', string $children_field = 'children'): array
+	public static function generateTree(array $list, string $union_field = 'id', string $parent_field = 'p_id', string $children_field = 'children'): array
 	{
 		$data = array();
-		foreach ($items as $item) {
-			if (isset($items[$item[$parent_field]])) {
-				$items[$item[$parent_field]][$children_field][] =& $items[$item[$union_field]];
+		foreach ($list as $item) {
+			if (isset($list[$item[$parent_field]])) {
+				$list[$item[$parent_field]][$children_field][] =& $list[$item[$union_field]];
 			} else {
-				$data[] =& $items[$item[$union_field]];
+				$data[] =& $list[$item[$union_field]];
 			}
 		}
 		return $data;
 	}
-	
+
 	/**
+	 * 生成随机字符串
 	 * @param $length
 	 * @return string
 	 * @throws \Random\RandomException
@@ -137,9 +126,10 @@ class Tool
 		}
 		return $randomString;
 	}
-	
-	
+
+
 	/**
+	 * 计算两个日期之间的天数差
 	 * @param string $date1
 	 * @param string $date2
 	 * @return int
@@ -150,12 +140,60 @@ class Tool
 		// 将日期字符串转换为 DateTime 对象
 		$dateTime1 = new DateTime($date1);
 		$dateTime2 = new DateTime($date2);
-		
+
 		// 计算两个日期之间的差值
 		$interval = $dateTime1->diff($dateTime2);
-		
+
 		// 返回相差的天数
 		return $interval->days;
 	}
-	
+
+	/**
+	 * 字符串脱敏
+	 * @param $inputString string 需要脱敏的字符串
+	 * @param $startLength int 字符串开头保留的长度
+	 * @param $endLength  int 字符串末尾保留的长度
+	 * @param $maskChar string 脱敏字符， 默认为 *
+	 * @param $maxLength int|null 最大长度，如果超过最大长度，则减少$maskChar的数量，默认为 null，表示不 设置最大长度
+	 * @return string
+	 */
+	public static function desensitizeString(string $inputString, int $startLength, int $endLength, string $maskChar = '*', int $maxLength = null): string
+	{
+		// 获取字符串的长度
+		$length = strlen($inputString);
+
+		// 如果字符串长度小于等于开头和结尾保留的长度之和，则直接返回原字符串
+		if ($length <= ($startLength + $endLength)) {
+			return $inputString;
+		}
+
+		// 截取开头保留的部分
+		$start = substr($inputString, 0, $startLength);
+
+		// 截取结尾保留的部分
+		$end = substr($inputString, -$endLength);
+
+		// 计算需要替换的部分的长度
+		$maskLength = $length - $startLength - $endLength;
+
+		// 如果设置了最大长度，并且脱敏后的字符串长度超过最大长度
+		if ($maxLength !== null && ($startLength + $endLength + $maskLength) > $maxLength) {
+			// 计算允许的 * 号的最大数量
+			$allowedMaskLength = $maxLength - $startLength - $endLength;
+			// 如果允许的 * 号数量小于 0，则只保留开头和结尾的部分
+			if ($allowedMaskLength < 0) {
+				return $start . $end;
+			}
+			// 减少 * 号的数量
+			$maskLength = $allowedMaskLength;
+		}
+
+		// 生成替换字符串
+		$mask = str_repeat($maskChar, $maskLength);
+
+		// 拼接并返回脱敏后的字符串
+		return $start . $mask . $end;
+	}
+
+
 }
