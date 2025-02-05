@@ -15,7 +15,7 @@ $input = [
 	'ff' => '{"a":1}',
 	'gg' => 3,
 	'phone' => '17666666666',
-	'xxx' => 'as1',
+	'xxx' => '2025-02',
 
 ];
 
@@ -32,16 +32,15 @@ try {
 			if ($input['bb'] == '12') {
 				return true;
 			}
-			
 			return false;
 		})->verify(),
 		V::field('xxx')->strAlphaNum()->strTrim()->strLength(2, 100)->isDateTimeInFormat('Y-m')->verify(),
 	]);
 //echo json_encode($data);
-	
+
 	$res = V::var($input['phone'])->required()->cmpNumber('>', 1)->check();
-	
-	
+
+
 	echo json_encode($data);
 } catch (\Exception $e) {
 	echo json_encode([

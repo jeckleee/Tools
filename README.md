@@ -30,7 +30,7 @@ return [
 ];
 ```
 
-## 使用场景1:常规验证表单提交的数据
+## 使用场景1:验证表单提交的数据
 
 ```php
 use Jeckleee\Tools\Validator
@@ -70,6 +70,16 @@ $data=Validator::one($post,[
 //$data=18
 
 
+//自定义验证方法,只有回调方法返回(bool)true时,才验证通过,否则验证失败
+$data=Validator::one($post,[
+     Validator::field('age')->fun(function ($value){
+         if ($value<18){
+             return false;
+         }
+         return true;
+     })->verify('年龄不能小于18岁'),
+]);
+
 //自定义验证失败的异常
 $data=Validator::array($post,[
      //......省略
@@ -90,9 +100,6 @@ $data=Validator::array($post,[
 //3.在规则中的->verify()方法中定义的异常和错误码优级最高,会覆盖之前所有的定义
 
 
-//查看全部可用的验证规则
-echo json_decode(Validator::$showAllRules);
-
 ```
 
 ## 使用场景2: 验证变量是否正确,返回(bool) TURE or FALSE
@@ -111,6 +118,7 @@ if (Validator::var($phone)->isMobile()->check()){
 
 ## 注意事项
 
-```angular2html
-1.
+```php
+//查看全部可用的验证规则
+echo json_decode(Validator::$showAllRules);
 ```
