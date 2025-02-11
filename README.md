@@ -16,7 +16,7 @@ composer require jeckleee/tools
 return [
     'enable' => true,
 
-    // 定义验证失败以后抛出的异常
+    // 定义验证失败以后抛出的异常,webman框架建议使用 BusinessException::class
     'exception' => Exception::class,
 
     // 定义验证失败的错误码
