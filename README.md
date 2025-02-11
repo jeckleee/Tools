@@ -120,5 +120,5 @@ if (Validator::var($phone)->isMobile()->check()){
 
 ```php
 //查看全部可用的验证规则
-echo json_decode(Validator::$showAllRules);
+echo json_encode(Validator::$showAllRules);
 ```
