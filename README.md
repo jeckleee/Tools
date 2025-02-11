@@ -1,6 +1,6 @@
 # Jeckleee/Tools
 
-一些常用工具:数据验证
+一些常用工具:数据验证 | 常用Function
 
 ## 安装
 
