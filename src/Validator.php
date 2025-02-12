@@ -69,7 +69,7 @@ class Validator
 
 		//数组相关
 		'inArray' => '字段的值必须在数组中',
-		'notInArray' => '字段的值必须在数组中',
+		'notInArray' => '字段的值必须不在数组中',
 		'isArray' => '字段的值必须是数组',
 
 		//常用
