@@ -22,7 +22,7 @@ class Tool
 			'error_return_mode' => 'immediate'
 		];
 		if (function_exists('config')) {
-			$config = config('config.plugin.jeckleee.tools.app', $config);
+			$config = config('plugin.jeckleee.tools.app', $config);
 		}
 		return $config;
 	}
