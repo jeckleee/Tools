@@ -41,6 +41,33 @@ echo json_encode(Validator::$showAllRules);
 //此工具已经收集了大多数的常用规则,欢迎大家提交pr补充新的规则
 ```
 
+| 验证规则               | 说明                                                                                            |
+|:-------------------|:----------------------------------------------------------------------------------------------|
+| required           | 字段必填,可设置一个默认值                                                                                 |
+| ifExisted          | 对字段进行判断,如果字段存在,则进行验证                                                                          |
+| strTrim            | 去除字段两端的空格、制表符、换行符等                                                                            |
+| strLength          | 字段的值知必须指定范围的长度                                                                                |
+| strStartWith       | 字段的值必须以指定的字符串开始                                                                               |
+| strEndWith         | 字段的值必须以指定的字符串结尾                                                                               |
+| strAlpha           | 字段的值只能由字母组成                                                                                   |
+| strAlphaNum        | 字段的值只能由字母和数字组成,$type=true时要求必须同时包含字母和数字                                                       |
+| betweenNumber      | 对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=                                              |
+| isNumber           | 字段的值必须是数字(int or float)                                                                       |
+| isInt              | 字段的值必须是整数                                                                                     |
+| isFloat            | 字段的值必须是小数,传入参数控制小数位数                                                                          |
+| inArray            | 字段的值必须在数组中                                                                                    |
+| notInArray         | 字段的值必须不在数组中                                                                                   |
+| isArray            | 字段的值必须是数组                                                                                     |
+| isEmail            | 字段的值必须是邮箱                                                                                     |
+| isMobile           | 字段的值必须是手机号                                                                                    |
+| isDateTimeInFormat | 字段的值必须是指定格式的时间字符串(Ymd-His等)                                                                   |
+| isIdCard           | 字段的值必须是身份证号                                                                                   |
+| isUrl              | 字段的值必须是网址                                                                                     |
+| isIp               | 字段的值必须是IP地址(ipv4 or ipv6)                                                                     |
+| isBool             | 字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,<br/>为 "0", "false", "off" and "no" 返回 FALSE |
+| isJson             | 字段的值必须是一个json字符串,允许传入参数将其转为Array                                                              |
+| withRegex          | 使用正则表达式验证字段                                                                                   |
+
 ## 使用场景1:验证表单提交的数据
 
 ```php
