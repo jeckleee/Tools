@@ -100,7 +100,7 @@ $data=Validator::one($post,[
 ]);
 ```
 
-### 自定义验证失败的异常和错误码
+### 自定义验异常和错误码
 
 ```php
 //自定义验证失败的异常
@@ -145,25 +145,24 @@ class PostController extends BaseController
 
 {
 	/**
-	 * @Notes: 获取列表
-	 * @Name getList
+	 * @Notes: 保存数据
+	 * @Name save
 	 * @return \support\Response
 	 * @author: -
 	 * @Time: 2024/2/5 15:06
 	 */
-	public function getList(Request $request): \support\Response
+	public function save(Request $request): \support\Response
 	{
 
 		try {
 			$input = V::array($request->all(), [
-				V::field('title')->verify(),
-				V::field('currentPage')->required(1)->isInt()->cmpNumber('>=',1)->verify('请填写正确的页码'),
-				V::field('pageSize')->required(30)->isInt()->betweenNumber(1,50)->verify('请填写正确的每页数据量(最大50)'),
+				V::field('title')->required()->verify('请填写标题'),
+				V::field('content')->required()->verify('请填写内容'),
+				V::field('category_id')->required(1)->isInt()->inArray([1,2,3,4])->verify('请选择正确的分类'),
 				V::field('status')->required(-1)->inArray([-1, 1, 2, 9])->verify('请选择正确的状态'),
 			]);
-			$list = Post::getList($input);
-			$this->pagedata['list'] = $list['list'];
-			$this->pagedata['total'] = $list['total'];
+			$post = Post::create($input);
+			$this->msg = '保存成功';
 		} catch (BusinessException $exception) {
 			$this->code = $exception->getCode() ?: 300;
 			$this->msg = $exception->getMessage();
@@ -177,11 +176,11 @@ class PostController extends BaseController
 ## 使用场景2: 验证变量是否正确,返回(bool) TURE or FALSE
 
 ```php
-use Jeckleee\Tools\Validator
+use Jeckleee\Tools\Validator as V;
 
 $phone='123456789';
 
-if (Validator::var($phone)->isMobile()->check()){
+if (V::var($phone)->isMobile()->check()){
     echo '手机号码正确';
 }else{
     echo '手机号码不正确'
