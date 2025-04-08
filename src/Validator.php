@@ -329,7 +329,7 @@ class Validator
 	 * @param int $max
 	 * @return Validator
 	 */
-	public function betweenNumber(int $min, int $max): Validator
+	public function betweenNumber(int|float $min, int|float $max): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($min, $max) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '必须在' . $min . '~' . $max . '之间';
@@ -442,10 +442,10 @@ class Validator
 	}
 
 	/**
-	 * @param $type
+	 * @param bool $type
 	 * @return Validator
 	 */
-	public function strAlphaNum($type = false): Validator
+	public function strAlphaNum(bool $type = false): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($type) {
 			$pattern = $type ? '/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/' : '/^[a-zA-Z0-9]+$/';
@@ -561,10 +561,10 @@ class Validator
 	}
 
 	/**
-	 * @param $type
+	 * @param string $type
 	 * @return Validator
 	 */
-	public function isIp($type = 'ipv4'): Validator
+	public function isIp(string $type = 'ipv4'): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($type) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是一个合法的ip地址';
