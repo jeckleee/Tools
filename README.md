@@ -67,6 +67,7 @@ echo json_encode(Validator::$showAllRules);
 | isBool             | 字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,<br/>为 "0", "false", "off" and "no" 返回 FALSE |
 | isJson             | 字段的值必须是一个json字符串,允许传入参数将其转为Array                                                              |
 | withRegex          | 使用正则表达式验证字段                                                                                   |
+| fun                | 使用自定义验证函数                                                                                     |                                                                                       |
 
 ## 使用场景1:验证表单提交的数据
 
