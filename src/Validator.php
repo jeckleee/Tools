@@ -118,7 +118,7 @@ class Validator
 	 * @param $err_code
 	 * @param $error_return_mode
 	 * @return array
-	 * @throws Exception
+	 * @throws $customException
 	 */
 	public static function array(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): array
 	{
@@ -136,7 +136,7 @@ class Validator
 	 * @param $err_code
 	 * @param $error_return_mode
 	 * @return false|mixed
-	 * @throws Exception
+	 * @throws $customException
 	 */
 	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
 	{
@@ -185,7 +185,7 @@ class Validator
 
 	/**
 	 * @return bool
-	 * @throws Exception
+	 * @throws $customException
 	 */
 	public function check(): bool
 	{
@@ -232,14 +232,14 @@ class Validator
 	/**
 	 * @param array $rules
 	 * @return void
-	 * @throws Exception
+	 * @throws $customException
 	 */
 	private static function applyRules(array $rules): void
 	{
 		$config = self::getConfig();
 		$collective_error = [];
 		foreach ($rules as $rule) {
-			if (!is_array($rule)) throw new self::$customException('请在规则的链式结束后调用->verify()方法', self::$err_code);
+			if (!is_array($rule)) throw new self::$customException('须在每个验证规则的末尾调用->verify()方法', self::$err_code);
 			if ($rule['list'] ?? false) {
 				foreach ($rule['list'] as $item) {
 					if (isset($item['_function_name']) && $item['_function_name'] === 'ifExisted' && !isset(self::$input[$rule['fieldName']])) {
