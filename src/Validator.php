@@ -138,7 +138,7 @@ class Validator
 	 * @return false|mixed
 	 * @throws $customException
 	 */
-	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null)
+	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): mixed
 	{
 		self::initialize($input, $customException, $err_code, $error_return_mode);
 		self::applyRules($rules);

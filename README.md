@@ -51,7 +51,8 @@ echo json_encode(Validator::$showAllRules);
 | strEndWith         | 字段的值必须以指定的字符串结尾                                                                               |
 | strAlpha           | 字段的值只能由字母组成                                                                                   |
 | strAlphaNum        | 字段的值只能由字母和数字组成,$type=true时要求必须同时包含字母和数字                                                       |
-| betweenNumber      | 对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=                                              |
+| betweenNumber      | 字段的值必须在某个区间                                                                                   |
+| cmpNumber          | 对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=                                              |
 | isNumber           | 字段的值必须是数字(int or float)                                                                       |
 | isInt              | 字段的值必须是整数                                                                                     |
 | isFloat            | 字段的值必须是小数,传入参数控制小数位数                                                                          |
