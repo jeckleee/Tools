@@ -68,7 +68,7 @@ echo json_encode(Validator::$showAllRules);
 | isBool             | 字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,<br/>为 "0", "false", "off" and "no" 返回 FALSE |
 | isJson             | 字段的值必须是一个json字符串,允许传入参数将其转为Array                                                              |
 | withRegex          | 使用正则表达式验证字段                                                                                   |
-| fun                | 使用自定义验证函数                                                                                     |                                                                                       |
+| fun                | 使用自定义验证函数,如果验证通过,必须返回布尔 true                                                                  |                                                                                       |
 
 ## 使用场景1:验证表单提交的数据
 
@@ -188,6 +188,13 @@ class PostController extends BaseController
 				V::field('title')->required()->verify('请填写标题'),
 				V::field('content')->required()->verify('请填写内容'),
 				V::field('category_id')->required(1)->isInt()->inArray([1,2,3,4])->verify('请选择正确的分类'),
+				//自定义方法验证
+				V::field('tag')->fun(
+					function ($val){
+						if ($val>1){
+							return true;
+						}
+					})->verify('请填写正确的标签'),
 				V::field('status')->required(-1)->inArray([-1, 1, 2, 9])->verify('请选择正确的状态'),
 			]);
 			$post = Post::create($input);
