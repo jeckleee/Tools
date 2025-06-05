@@ -36,10 +36,7 @@ class Validator
 	 * @var
 	 */
 	private $variable;
-	/**
-	 * @var array
-	 */
-	private array $config = [];
+
 	/**
 	 * @var string
 	 */
@@ -325,8 +322,8 @@ class Validator
 	}
 
 	/**
-	 * @param int $min
-	 * @param int $max
+	 * @param int|float $min
+	 * @param int|float $max
 	 * @return Validator
 	 */
 	public function betweenNumber(int|float $min, int|float $max): Validator
@@ -561,7 +558,7 @@ class Validator
 	}
 
 	/**
-	 * @param string $type
+	 * @param string $type ipv4|ipv6
 	 * @return Validator
 	 */
 	public function isIp(string $type = 'ipv4'): Validator
@@ -593,7 +590,7 @@ class Validator
 	}
 
 	/**
-	 * @param int|null $decimalPlaces
+	 * @param int|null $decimalPlaces 保留小数位
 	 * @return Validator
 	 */
 	public function isFloat(int $decimalPlaces = null): Validator
@@ -622,7 +619,7 @@ class Validator
 
 
 	/**
-	 * @param string $pattern
+	 * @param string $pattern 正则表达式
 	 * @return Validator
 	 */
 	public function withRegex(string $pattern): Validator
@@ -654,7 +651,7 @@ class Validator
 	}
 
 	/**
-	 * @param $symbol
+	 * @param $symbol > >= < <= = !=
 	 * @param int|float $number
 	 * @return Validator
 	 */
@@ -699,10 +696,10 @@ class Validator
 	}
 
 	/**
-	 * @param $to_array
+	 * @param bool $to_array
 	 * @return Validator
 	 */
-	public function isJson($to_array = false): Validator
+	public function isJson(bool $to_array = false): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($to_array) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是JSON字符串';
@@ -716,10 +713,10 @@ class Validator
 	}
 
 	/**
-	 * @param $with
+	 * @param string $with
 	 * @return Validator
 	 */
-	public function strStartWith($with): Validator
+	public function strStartWith(string $with): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($with) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是以' . $with . '开头';
@@ -733,10 +730,10 @@ class Validator
 	}
 
 	/**
-	 * @param $with
+	 * @param string $with
 	 * @return Validator
 	 */
-	public function strEndWith($with): Validator
+	public function strEndWith(string $with): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($with) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是以' . $with . '结尾';
