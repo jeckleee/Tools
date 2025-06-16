@@ -593,7 +593,7 @@ class Validator
 	 * @param int|null $decimalPlaces 保留小数位
 	 * @return Validator
 	 */
-	public function isFloat(int $decimalPlaces = null): Validator
+	public function isFloat(int|null $decimalPlaces = null): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($decimalPlaces) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是浮点数';
