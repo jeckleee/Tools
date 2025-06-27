@@ -76,12 +76,17 @@ class Validator
 		'isIdCard' => '字段的值必须是身份证号',
 		'isUrl' => '字段的值必须是网址',
 		'isIp' => '字段的值必须是IP地址(ipv4 or ipv6)',
+		'isFile' => '字段的值必须是文件',
+		
 
 		//其他
 		'isBool' => '字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,为 "0", "false", "off" and "no" 返回 FALSE',
 		'isJson' => '字段的值必须是一个json字符串,允许传入参数将其转为Array',
 		'withRegex' => '使用正则表达式验证字段',
-
+		'requiredWith' => '字段依赖于另一个字段,当另一个字段存在且不为空时,当前字段必填',
+		'requiredWithout' => '字段依赖于另一个字段,当另一个字段不存在或为空时,当前字段必填',
+		'same' => '字段值必须与指定字段值相同',
+		'different' => '字段值必须与指定字段值不同',
 
 	];
 
@@ -287,6 +292,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 要求字段必填
 	 * @param $def
 	 * @return Validator
 	 */
@@ -306,6 +312,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 去除字符串两端空白字符
 	 * @return Validator
 	 */
 	public function strTrim(): Validator
@@ -322,6 +329,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否在指定范围内(含边界)
 	 * @param int|float $min
 	 * @param int|float $max
 	 * @return Validator
@@ -339,6 +347,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否在数组中
 	 * @param $array
 	 * @return Validator
 	 */
@@ -355,6 +364,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否在数组中之外
 	 * @param $array
 	 * @return Validator
 	 */
@@ -371,6 +381,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是数组
 	 * @return Validator
 	 */
 	public function isArray(): Validator
@@ -386,6 +397,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是数字
 	 * @return Validator
 	 */
 	public function isNumber(): Validator
@@ -405,6 +417,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断字符串长度
 	 * @param int $min
 	 * @param int $max
 	 * @return Validator
@@ -424,6 +437,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是字母
 	 * @return Validator
 	 */
 	public function strAlpha(): Validator
@@ -439,6 +453,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是字母和数字的组合
 	 * @param bool $type
 	 * @return Validator
 	 */
@@ -446,7 +461,7 @@ class Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($type) {
 			$pattern = $type ? '/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/' : '/^[a-zA-Z0-9]+$/';
-			$defaultMsg = $type ? '参数:' . $fieldName . '必须同时包含字母和数字' : '参数:' . $fieldName . '由字母和数字组成';
+			$defaultMsg = $type ? '参数:' . $fieldName . '必须同时包含字母和数字' : '参数:' . $fieldName . '由字母或数字组成';
 			$msg = $item['err_msg'] ?: $defaultMsg;
 
 			if (preg_match($pattern, $fieldValue)) {
@@ -458,6 +473,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是邮箱地址
 	 * @return Validator
 	 */
 	public function isEmail(): Validator
@@ -473,6 +489,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是中国大陆手机号
 	 * @return Validator
 	 */
 	public function isMobile(): Validator
@@ -489,6 +506,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是时间字符串, 允许传入参数指定时间格式
 	 * @param $format
 	 * @return Validator
 	 */
@@ -506,6 +524,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是身份证号
 	 * @return Validator
 	 */
 	public function isIdCard(): Validator
@@ -543,6 +562,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是url
 	 * @return Validator
 	 */
 	public function isUrl(): Validator
@@ -558,6 +578,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是ip地址
 	 * @param string $type ipv4|ipv6
 	 * @return Validator
 	 */
@@ -575,6 +596,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是整数
 	 * @return Validator
 	 */
 	public function isInt(): Validator
@@ -590,6 +612,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是浮点数, 允许传入参数保留小数位
 	 * @param int|null $decimalPlaces 保留小数位
 	 * @return Validator
 	 */
@@ -619,6 +642,7 @@ class Validator
 
 
 	/**
+	 * 正则表达式校验: 判断参数是否符合指定的正则表达式
 	 * @param string $pattern 正则表达式
 	 * @return Validator
 	 */
@@ -635,6 +659,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是布尔值
 	 * @return Validator
 	 */
 	public function isBool(): Validator
@@ -651,6 +676,7 @@ class Validator
 	}
 
 	/**
+	 * 比较数字: 比较数字与指定值的大小关系
 	 * @param $symbol > >= < <= = !=
 	 * @param int|float $number
 	 * @return Validator
@@ -684,6 +710,7 @@ class Validator
 
 
 	/**
+	 * 有条件的校验: 判断字段是否存在, 如果存在则验证,否则忽略该字段
 	 * @return Validator
 	 */
 	public function ifExisted(): Validator
@@ -696,6 +723,7 @@ class Validator
 	}
 
 	/**
+	 * 校验: 判断是否是json字符串,允许传入参数将其转为Array
 	 * @param bool $to_array
 	 * @return Validator
 	 */
@@ -713,6 +741,7 @@ class Validator
 	}
 
 	/**
+	 * 字符串开头校验:要求字符串以指定的字符串开头
 	 * @param string $with
 	 * @return Validator
 	 */
@@ -730,6 +759,7 @@ class Validator
 	}
 
 	/**
+	 * 校验:要求字符串以指定的字符串结尾
 	 * @param string $with
 	 * @return Validator
 	 */
@@ -747,6 +777,7 @@ class Validator
 	}
 
 	/**
+	 * 自定义校验: 传入一个函数, 函数返回true则验证通过, 否则验证失败
 	 * @param callable $function
 	 * @return Validator
 	 */
@@ -762,5 +793,167 @@ class Validator
 			}
 		});
 
+	}
+
+	/**
+	 * 文件校验：判断是否为文件、校验大小和扩展名,仅检查文件是否符合要求
+	 * 兼容格式：
+	 * 1. 原始$_FILES格式: 使用方式V::field('avatar')->isFile($_FILES)
+	 * 2. Laravel格式: Illuminate\Http\UploadedFile对象   使用方式V::field('avatar')-->isFile(request()->file())
+	 * 3. Webman格式: support\UploadFile对象   使用方式V::field('avatar')-->isFile(request()->file())
+	 * 4. ThinkPHP8.0格式: think\file\UploadedFile对象   使用方式V::field('avatar')-->isFile(request()->file())
+	 * @param array $ext 允许的扩展名（如['jpg','png']），[]则不限制
+	 * @param int|null $maxSize 最大字节数，默认500KB
+	 * @return Validator
+	 */
+	public function isFile(array|object|string $file, array $ext = [], int $maxSize_Kb = 500): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($file, $maxSize_Kb, $ext) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是有效的文件';
+			$sizeMsg = $item['err_msg'] ?: '参数:' . $fieldName . '文件大小超出限制';
+			$typeMsg = $item['err_msg'] ?: '参数:' . $fieldName . '文件类型不被允许';
+			$isValid = false;
+			$size = null;
+			$fileExt = null;
+			$originalName = null;
+			$fileObj = $file[$fieldName] ?? $file;
+
+			// 1. 原生 $_FILES 格式
+			if (is_array($fileObj) && isset($fileObj['tmp_name'])) {
+				if (is_uploaded_file($fileObj['tmp_name'])) {
+					$isValid = true;
+					$size = $fileObj['size'] ?? null;
+					$originalName = $fileObj['name'] ?? null;
+					$fileExt = $originalName ? strtolower(pathinfo($originalName, PATHINFO_EXTENSION)) : null;
+				}
+			}
+			// 2. Laravel: Illuminate\Http\UploadedFile
+			elseif (is_object($fileObj) && strpos(get_class($fileObj), 'Illuminate') !== false) {
+				if (method_exists($fileObj, 'isValid') && $fileObj->isValid()) {
+					$isValid = true;
+					$size = method_exists($fileObj, 'getSize') ? $fileObj->getSize() : null;
+					$originalName = method_exists($fileObj, 'getClientOriginalName') ? $fileObj->getClientOriginalName() : null;
+					$fileExt = $originalName ? strtolower(pathinfo($originalName, PATHINFO_EXTENSION)) : null;
+				}
+			}
+			// 3. ThinkPHP8.0: think\file\UploadedFile
+			elseif (is_object($fileObj) && strpos(get_class($fileObj), 'think\\file\\UploadedFile') !== false) {
+				if (method_exists($fileObj, 'isValid') && $fileObj->isValid()) {
+					$isValid = true;
+					$size = method_exists($fileObj, 'getSize') ? $fileObj->getSize() : null;
+					$originalName = method_exists($fileObj, 'getOriginalName') ? $fileObj->getOriginalName() : null;
+					$fileExt = $originalName ? strtolower(pathinfo($originalName, PATHINFO_EXTENSION)) : null;
+				}
+			}
+			// 4. Webman: support\UploadFile
+			elseif (is_object($fileObj) && (strpos(get_class($fileObj), 'support\\UploadFile') !== false || strpos(get_class($fileObj), 'Webman\\') !== false)) {
+				if (method_exists($fileObj, 'isValid') && $fileObj->isValid()) {
+					$isValid = true;
+					$size = method_exists($fileObj, 'getSize') ? $fileObj->getSize() : null;
+					$originalName = method_exists($fileObj, 'getUploadName') ? $fileObj->getUploadName() : null;
+					$fileExt = $originalName ? strtolower(pathinfo($originalName, PATHINFO_EXTENSION)) : null;
+				}
+			}
+			else{
+				throw new self::$customException('未知的文件处理方式', $item['err_code']);
+			}
+
+			if (!$isValid) {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+			if ($maxSize_Kb !== null && ($size === null || $size > $maxSize_Kb * 1024)) {
+				throw new self::$customException($sizeMsg, $item['err_code']);
+			}
+			if ($ext && ($fileExt === null || !in_array($fileExt, $ext))) {
+				throw new self::$customException($typeMsg, $item['err_code']);
+			}
+			self::$output[$fieldName] = true;
+		}, ['maxSize_Kb' => $maxSize_Kb, 'ext' => $ext]);
+	}
+
+	/**
+	 * 条件必填校验: 当指定字段存在且不为空时，当前字段必填
+	 * @param string $field 依赖的字段名
+	 * @return Validator
+	 */
+	public function requiredWith(string $field): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($field) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '在字段' . $field . '存在时必须填写';
+			$dependentValue = self::$input[$field] ?? null;
+			if ($dependentValue !== null && $dependentValue !== '') {
+				if (isset(self::$input[$fieldName]) && self::$input[$fieldName] !== '') {
+					self::$output[$fieldName] = $fieldValue;
+				} else {
+					throw new self::$customException($msg, $item['err_code']);
+				}
+			} else {
+				// 依赖字段不存在或为空，跳过当前字段验证
+				if (isset(self::$input[$fieldName])) {
+					self::$output[$fieldName] = $fieldValue;
+				}
+			}
+		}, ['dependent_field' => $field]);
+	}
+
+	/**
+	 * 条件必填校验: 当指定字段不存在或为空时，当前字段必填
+	 * @param string $field 依赖的字段名
+	 * @return Validator
+	 */
+	public function requiredWithout(string $field): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($field) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '在字段' . $field . '不存在时必须填写';
+			$dependentValue = self::$input[$field] ?? null;
+			if ($dependentValue === null || $dependentValue === '') {
+				if (isset(self::$input[$fieldName]) && self::$input[$fieldName] !== '') {
+					self::$output[$fieldName] = $fieldValue;
+				} else {
+					throw new self::$customException($msg, $item['err_code']);
+				}
+			} else {
+				// 依赖字段存在且不为空，跳过当前字段验证
+				if (isset(self::$input[$fieldName])) {
+					self::$output[$fieldName] = $fieldValue;
+				}
+			}
+		}, ['dependent_field' => $field]);
+	}
+
+	/**
+	 * 字段一致性校验: 当前字段值必须与指定字段值相同
+	 * @param string $field 比较的字段名
+	 * @return Validator
+	 */
+	public function same(string $field): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($field) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '与字段' . $field . '的值不一致';
+			$compareValue = self::$input[$field] ?? null;
+			if ($fieldValue === $compareValue) {
+				self::$output[$fieldName] = $fieldValue;
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+		}, ['compare_field' => $field]);
+	}
+
+	/**
+	 * 字段差异性校验: 当前字段值必须与指定字段值不同
+	 * @param string $field 比较的字段名
+	 * @return Validator
+	 */
+	public function different(string $field): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($field) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '与字段' . $field . '的值不能相同';
+			$compareValue = self::$input[$field] ?? null;
+			if ($fieldValue !== $compareValue) {
+				self::$output[$fieldName] = $fieldValue;
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+		}, ['compare_field' => $field]);
 	}
 }

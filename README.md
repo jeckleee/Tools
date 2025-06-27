@@ -1,13 +1,18 @@
 # Jeckleee/Tools
 
-一些常用工具:
+一个功能强大的PHP数据验证和工具库，提供符合直觉的链式调用验证器，让数据验证变得简单高效。
 
-- 数据验证 : 在很多情况下总是记不住验证器的规则,每次都得查询文档,所以本工具提供了一个符合直觉的验证器,使用链式调用添加规则,方便记忆和使用
-- 常用Function :封装了一些常用的方法
+## 主要特性
+
+- **数据验证** : 提供符合直觉的验证器，使用链式调用添加规则，方便记忆和使用
+- **常用工具函数** : 封装了一些常用的数据处理方法
+- **支持多种验证方式** : 批量验证、单字段验证、变量验证
+- **灵活的配置** : 支持自定义异常、错误码、错误返回模式
+- **丰富的验证规则** : 覆盖大部分常用验证场景
 
 ## 安装
 
-```angular2html
+```bash
 composer require jeckleee/tools
 ```
 
@@ -28,204 +33,362 @@ return [
     //验证失败错误如何返回(immediate,collective)
     //immediate:立即返回,只要验证出现错误,立即抛出当前错误字段的异常信息,不再验证剩余的字段
     //collective:集中返回,验证全部字段,收集所有异常,验证结束后在异常$e->getMessage()中返回错误字段的列表,json字符串形式
-    'error_return_mode' => 'immediate',
-	
+    'error_return_mode' => 'immediate', // 只支持immediate和collective，其他值会抛异常
 ];
 ```
 
 ## 查看所有支持的验证规则
 
 ```php
-use Jeckleee\Tools\Validator
+use Jeckleee\Tools\Validator;
 echo json_encode(Validator::$showAllRules);
-//此工具已经收集了大多数的常用规则,欢迎大家提交pr补充新的规则
 ```
 
-| 验证规则               | 说明                                                                                            |
-|:-------------------|:----------------------------------------------------------------------------------------------|
-| required           | 字段必填,可设置一个默认值                                                                                 |
-| ifExisted          | 对字段进行判断,如果字段存在,则进行验证                                                                          |
-| strTrim            | 去除字段两端的空格、制表符、换行符等                                                                            |
-| strLength          | 字段的值知必须指定范围的长度                                                                                |
-| strStartWith       | 字段的值必须以指定的字符串开始                                                                               |
-| strEndWith         | 字段的值必须以指定的字符串结尾                                                                               |
-| strAlpha           | 字段的值只能由字母组成                                                                                   |
-| strAlphaNum        | 字段的值只能由字母和数字组成,$type=true时要求必须同时包含字母和数字                                                       |
-| betweenNumber      | 字段的值必须在某两个数字区间(含)                                                                       |
-| cmpNumber          | 对字段进行比较,是betweenNumber方法的补充,允许的符号:>,<,>=,<=,!=,=                                              |
-| isNumber           | 字段的值必须是数字(int or float)                                                                       |
-| isInt              | 字段的值必须是整数                                                                                     |
-| isFloat            | 字段的值必须是小数,传入参数控制小数位数                                                                          |
-| inArray            | 字段的值必须在数组中                                                                                    |
-| notInArray         | 字段的值必须不在数组中                                                                                   |
-| isArray            | 字段的值必须是数组                                                                                     |
-| isEmail            | 字段的值必须是邮箱                                                                                     |
-| isMobile           | 字段的值必须是手机号                                                                                    |
-| isDateTimeInFormat | 字段的值必须是指定格式的时间字符串(Ymd-His等)                                                                   |
-| isIdCard           | 字段的值必须是身份证号                                                                                   |
-| isUrl              | 字段的值必须是网址                                                                                     |
-| isIp               | 字段的值必须是IP地址(ipv4 or ipv6)                                                                     |
-| isBool             | 字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,<br/>为 "0", "false", "off" and "no" 返回 FALSE |
-| isJson             | 字段的值必须是一个json字符串,允许传入参数将其转为Array                                                              |
-| withRegex          | 使用正则表达式验证字段                                                                                   |
-| fun                | 使用自定义验证函数,如果验证通过,必须返回布尔 true                                                                  |                                                                                       |
+## 验证规则列表
 
-## 使用场景1:验证表单提交的数据
+| 验证规则 | 说明 | 参数示例 |
+|:---------|:-----|:---------|
+| **基础验证** |
+| `required` | 字段必填,可设置一个默认值 | `required('默认值')` |
+| `ifExisted` | 字段存在时才验证，否则跳过 | `ifExisted()` |
+| `requiredWith` | 当指定字段存在且不为空时，当前字段必填 | `requiredWith('email')` |
+| `requiredWithout` | 当指定字段不存在或为空时，当前字段必填 | `requiredWithout('phone')` |
+| `same` | 当前字段值必须与指定字段值相同 | `same('password')` |
+| `different` | 当前字段值必须与指定字段值不同 | `different('old_password')` |
+| **字符串验证** |
+| `strTrim` | 去除字段两端的空格、制表符、换行符等 | `strTrim()` |
+| `strLength` | 字段的值必须在指定范围的长度 | `strLength(3, 32)` |
+| `strStartWith` | 字段的值必须以指定的字符串开始 | `strStartWith('http')` |
+| `strEndWith` | 字段的值必须以指定的字符串结尾 | `strEndWith('.com')` |
+| `strAlpha` | 字段的值只能由字母组成 | `strAlpha()` |
+| `strAlphaNum` | 字段的值只能由字母和数字组成，`true`时必须同时包含字母和数字 | `strAlphaNum(true)` |
+| **数字验证** |
+| `betweenNumber` | 字段的值必须在某两个数字区间(含) | `betweenNumber(1, 100)` |
+| `cmpNumber` | 对字段进行比较，允许的符号: >, <, >=, <=, !=, = | `cmpNumber('>', 18)` |
+| `isNumber` | 字段的值必须是数字(int或float，字符串数字也通过) | `isNumber()` |
+| `isInt` | 字段的值必须是整数（int类型，字符串数字不通过） | `isInt()` |
+| `isFloat` | 字段的值必须是小数，可限制小数位数 | `isFloat(2)` |
+| **数组验证** |
+| `inArray` | 字段的值必须在数组中 | `inArray([1,2,3])` |
+| `notInArray` | 字段的值必须不在数组中 | `notInArray(['admin'])` |
+| `isArray` | 字段的值必须是数组 | `isArray()` |
+| **常用格式验证** |
+| `isEmail` | 字段的值必须是邮箱 | `isEmail()` |
+| `isMobile` | 字段的值必须是手机号 | `isMobile()` |
+| `isDateTimeInFormat` | 字段的值必须是指定格式的时间字符串 | `isDateTimeInFormat('Y-m-d')` |
+| `isIdCard` | 字段的值必须是身份证号 | `isIdCard()` |
+| `isUrl` | 字段的值必须是网址 | `isUrl()` |
+| `isIp` | 字段的值必须是IP地址(ipv4或ipv6) | `isIp('ipv4')` |
+| `isBool` | 字段的值必须是布尔值 | `isBool()` |
+| `isJson` | 字段的值必须是一个json字符串，`true`时转为数组 | `isJson(true)` |
+| **文件验证** |
+| `isFile` | 文件校验，支持多种格式：<br/>1. 原始`$_FILES`数组<br/>2. Laravel的`Illuminate\Http\UploadedFile`对象<br/>3. Webman的`support\UploadFile`对象<br/>4. ThinkPHP的`think\file\UploadedFile`对象<br/>常见用法：<br/>- `isFile($_FILES, ['jpg','png'], 1024)`<br/>- `isFile($request->file(), ['pdf'], 2048)`<br/> | `isFile($_FILES, ['jpg','png'], 1024)` |
+| **其他验证** |
+| `withRegex` | 使用正则表达式验证字段 | `withRegex('/^[a-z]+$/')` |
+| `fun` | 使用自定义验证函数 | `fun(function($val){ return $val > 0; })` |
+
+## 使用场景
+
+### 1. 批量验证表单数据
 
 ```php
-use Jeckleee\Tools\Validator
+use Jeckleee\Tools\Validator as V;
 
-$post=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com','age'=>18];
+$post = [
+    'name' => 'jeckleee',
+    'password' => '123456',
+    'password_confirm' => '123456',
+    'email' => 'jeckleee@qq.com',
+    'age' => 18,
+    'avatar' => $_FILES['avatar'] ?? null
+];
 
-//验证一组数据
-$data=Validator::array($post,[
-     //只有写在此数组中的字段才会验证并存储到$data中
-     Validator::field('name')->required()->strTrim()->strLength(3,32)->verify('请填写正确的用户名'),
-     
-     //使用自定义正则表达式验证
-     Validator::field('password')->required()->withRegex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')->verify('要求密码必须包含大写字母、小写字母、数字和特殊字符'),
-     Validator::field('email')->required()->isEmail()->verify('请填写正确的邮箱'),
-     
-     //不验证score字段,如果字段不存在则返回["score"=>null]
-     Validator::field('score')->verify(),
-     
-     //存在则验证,如果字段不存在则不验证,也不会出现在最终的数据中
-     Validator::field('score')->ifExisted()->isInt()->betweenNumber(0,100)->verify('请填写正确的分数'),
-     
+// 验证一组数据
+$data = V::array($post, [
+    // 基础验证
+    V::field('name')->required()->strTrim()->strLength(3, 32)->verify('请填写正确的用户名'),
+    
+    // 密码验证
+    V::field('password')->required()->strLength(6, 20)->verify('密码长度6-20位'),
+    V::field('password_confirm')->same('password')->verify('两次密码不一致'),
+    
+    // 邮箱验证
+    V::field('email')->required()->isEmail()->verify('请填写正确的邮箱'),
+    
+    // 年龄验证（只接受int类型）
+    V::field('age')->required()->isInt()->betweenNumber(1, 120)->verify('请填写正确的年龄'),
+    
+    // 文件验证（第一个参数为$_FILES，第二个为扩展名数组，第三个为最大KB数）
+    V::field('avatar')->isFile($_FILES, ['jpg', 'png', 'gif'], 2*1024)->verify('头像格式或大小不正确'),
+    
+    // 条件验证
+    V::field('phone')->requiredWithout('email')->isMobile()->verify('手机号或邮箱至少填写一个'),
+    V::field('email_code')->requiredWith('email')->strLength(4, 6)->verify('邮箱验证码必填'),
+    
+    // 可选字段验证
+    V::field('score')->ifExisted()->isInt()->betweenNumber(0, 100)->verify('请填写正确的分数'),
 ]);
-//$data=['name'=>'jeckleee','password'=>'123456','email'=>'jeckleee@qq.com','score'=>null]; //age字段不会出现在$data中
 
-// 按需使用 extract 函数将关联数组转换为变量
-extract($data);
-// 现在可以使用这些变量了
-echo $name; // 输出: jeckleee
-echo $password;  // 输出: 123456
-echo email; // 输出: jeckleee@qq.com
-
+// $data 包含所有验证通过的字段
 ```
 
-### 验证一个字段
+### 2. 验证单个字段
 
 ```php
-//验证一个字段
-$data=Validator::one($post,[
-     Validator::field('age')->required()->isInt()->betweenNumber(1,120)->verify('请填写正确的年龄'),
+// 验证一个字段
+$age = V::one($post, [
+    V::field('age')->required()->isInt()->betweenNumber(1, 120)->verify('请填写正确的年龄'),
 ]);
-echo $data; //$data=18
+echo $age; // 输出: 18
 ```
 
-### 自定义验证规则
+### 3. 验证变量
 
 ```php
+// 验证变量是否正确,返回(bool) TRUE or FALSE
+$phone = '123456789';
 
-//自定义验证方法,只有回调方法返回(bool)true时,才验证通过,否则验证失败
-$data=Validator::one($post,[
-     Validator::field('age')->fun(function ($value){
-         if ($value<18){
-             return false;
-         }
-         return true;
-     })->verify('年龄不能小于18岁'),
-]);
+if (V::var($phone)->isMobile()->check()) {
+    echo '手机号码正确';
+} else {
+    echo '手机号码不正确';
+}
 ```
 
-### 自定义验异常和错误码
+### 4. 自定义验证规则
 
 ```php
-//自定义验证失败的异常
-$data=Validator::array($post,[
-     //......省略
-],MyException::class);
-//如果不定义异常类，则使用配置文件中定义的异常
-
-
-
-
-//三种异常定义的区别:
-//1.使用配置文件中定义异常和错误码
-$data=Validator::array($post,[
-      Validator::field('name')->required()->verify('请填写账号'),
-      //......省略
+// 自定义验证方法,只有回调方法返回(bool)true时,才验证通过
+$data = V::one($post, [
+    V::field('age')->fun(function ($value) {
+        return $value >= 18;
+    })->verify('年龄不能小于18岁'),
 ]);
-
-//2.在使用array()或者one()方法时定义异常和错误码,会覆盖配置文件中定义的异常
-$data=Validator::array($post,[
-	Validator::field('name')->required()->verify('请填写账号'),
-	//......省略
-],MyException::class);
-
-
-//3.在规则中的->verify()方法中定义的错误码优级最高,会覆盖之前所有的定义
-$data=Validator::array($post,[
-      Validator::field('name')->required()->verify('请填写账号',12001),
-      Validator::field('age')->required()->isInt()->betweenNumber(1,120)->verify('请填写正确的年龄',12002),
-      //......省略
-]);
-
 ```
 
-## 一个使用示例
+### 5. 条件必填验证
+
+```php
+$data = V::array($input, [
+    // 当邮箱存在时，验证码必填
+    V::field('email')->required()->isEmail()->verify('邮箱格式错误'),
+    V::field('email_code')->requiredWith('email')->strLength(4, 6)->verify('邮箱验证码必填'),
+    
+    // 当手机号不存在时，邮箱必填
+    V::field('phone')->requiredWithout('email')->isMobile()->verify('手机号或邮箱至少填写一个'),
+]);
+```
+
+### 6. 字段值比较验证
+
+```php
+$data = V::array($input, [
+    // 密码确认
+    V::field('password')->required()->strLength(6, 20)->verify('密码长度6-20位'),
+    V::field('password_confirm')->same('password')->verify('两次密码不一致'),
+    
+    // 新旧密码不能相同
+    V::field('new_password')->required()->different('old_password')->verify('新密码不能与原密码相同'),
+]);
+```
+
+### 7. 文件上传验证
+
+```php
+// 兼容多种文件上传格式
+$data = V::array($request->all(), [
+    // 原始$_FILES格式
+    V::field('avatar')->isFile($_FILES, ['jpg', 'png', 'gif'], 2*1024)->verify('头像格式或大小不正确'),
+    
+    // Laravel框架
+    V::field('document')->isFile($request->file(), ['pdf', 'doc', 'docx'], 10*1024)->verify('文档格式或大小不正确'),
+    
+    // Webman框架
+    V::field('image')->isFile($request->file(), ['jpg', 'png'], 1024)->verify('图片格式或大小不正确'),
+    
+    // 本地文件路径
+    V::field('local_file')->isFile($request->file(), ['txt', 'log'], 512)->verify('文件格式或大小不正确'),
+]);
+
+// Laravel使用示例
+public function upload(Request $request)
+{
+    $data = V::array($request->all(), [
+        V::field('avatar')->isFile($request->file(), ['jpg', 'png'], 2*1024)->verify('头像格式或大小不正确'),
+        V::field('document')->isFile($request->file(), ['pdf'], 5*1024)->verify('文档格式或大小不正确'),
+    ]);
+    
+    // 处理文件上传
+    if (isset($data['avatar'])) {
+        $path = $data['avatar']->store('avatars');
+    }
+}
+
+// Webman使用示例
+public function upload(Request $request)
+{
+    $data = V::array($request->all(), [
+        V::field('avatar')->isFile($request->file(), ['jpg', 'png'], 2*1024)->verify('头像格式或大小不正确'),
+        V::field('document')->isFile($request->file(), ['pdf'], 5*1024)->verify('文档格式或大小不正确'),
+    ]);
+    
+    // 处理文件上传
+    if (isset($data['avatar'])) {
+        $path = $data['avatar']->move('uploads/avatars');
+    }
+}
+```
+
+### 8. JSON字符串校验
+
+```php
+// 校验并转为数组
+V::field('data')->isJson(true)->verify('数据格式错误');
+```
+
+### 9. 浮点数校验
+
+```php
+// 校验并限制2位小数
+V::field('price')->isFloat(2)->verify('价格格式错误');
+```
+
+### 10. 数字比较
+
+```php
+// 年龄大于18
+V::field('age')->cmpNumber('>', 18)->verify('年龄必须大于18岁');
+```
+
+## 异常处理
+
+### 自定义异常和错误码
+
+```php
+// 1. 使用配置文件中定义异常和错误码
+$data = V::array($post, [
+    V::field('name')->required()->verify('请填写账号'),
+]);
+
+// 2. 在使用array()或者one()方法时定义异常和错误码
+$data = V::array($post, [
+    V::field('name')->required()->verify('请填写账号'),
+], MyException::class,500);
+
+// 3. 在规则中的->verify()方法中定义的错误码优先级最高
+$data = V::array($post, [
+    V::field('name')->required()->verify('请填写账号', 12001),
+    V::field('age')->required()->isInt()->betweenNumber(1, 120)->verify('请填写正确的年龄', 12002),
+]);
+```
+
+### 错误返回模式
+
+```php
+// immediate模式：立即返回第一个错误
+$data = V::array($post, $rules, null, null, 'immediate');
+
+// collective模式：收集所有错误后返回
+$data = V::array($post, $rules, null, null, 'collective');
+```
+
+> `error_return_mode` 只支持 `immediate` 和 `collective`，否则会抛出异常。
+
+## 完整使用示例
 
 ```php
 use Jeckleee\Tools\Validator as V;
 use support\Request;
 
-class PostController extends BaseController
-
+class UserController extends BaseController
 {
-	/**
-	 * @Notes: 保存数据
-	 * @Name save
-	 * @return \support\Response
-	 * @author: -
-	 * @Time: 2024/2/5 15:06
-	 */
-	public function save(Request $request): \support\Response
-	{
-
-		try {
-			$input = V::array($request->all(), [
-				V::field('title')->required()->verify('请填写标题'),
-				V::field('content')->required()->verify('请填写内容'),
-				V::field('category_id')->required(1)->isInt()->inArray([1,2,3,4])->verify('请选择正确的分类'),
-				//自定义方法验证
-				V::field('tag')->fun(
-					function ($val){
-						if ($val>1){
-							return true;
-						}
-					})->verify('请填写正确的标签'),
-				V::field('status')->required(-1)->inArray([-1, 1, 2, 9])->verify('请选择正确的状态'),
-			]);
-			$post = Post::create($input);
-			$this->msg = '保存成功';
-		} catch (BusinessException $exception) {
-			$this->code = $exception->getCode() ?: 300;
-			$this->msg = $exception->getMessage();
-			$this->status = 'error';
-		}
-
-		return json($this->getFormatApiData());//getFormatApiData是一个我自己的自定义方法,返回格式化后的数据或者错误
-	}
+    public function register(Request $request): \support\Response
+    {
+        try {
+            $input = V::array($request->all(), [
+                // 基础信息验证
+                V::field('username')->required()->strTrim()->strLength(3, 20)->strAlphaNum()->verify('用户名格式错误'),
+                V::field('email')->required()->isEmail()->verify('邮箱格式错误'),
+                V::field('phone')->requiredWithout('email')->isMobile()->verify('手机号或邮箱至少填写一个'),
+                
+                // 密码验证
+                V::field('password')->required()->strLength(6, 20)->verify('密码长度6-20位'),
+                V::field('password_confirm')->same('password')->verify('两次密码不一致'),
+                
+                // 个人信息验证
+                V::field('age')->ifExisted()->isInt()->betweenNumber(1, 120)->verify('年龄格式错误'),
+                V::field('avatar')->ifExisted()->isFile($request->file(), ['jpg', 'png'], 1024)->verify('头像格式或大小错误'),
+                
+                // 自定义验证
+                V::field('invite_code')->fun(function($val) {
+                    return strlen($val) === 6 && ctype_alnum($val);
+                })->verify('邀请码格式错误'),
+            ]);
+            
+            // 创建用户
+            $user = User::create($input);
+            return json(['code' => 200, 'msg' => '注册成功', 'data' => $user]);
+            
+        } catch (BusinessException $exception) {
+            return json([
+                'code' => $exception->getCode() ?: 300,
+                'msg' => $exception->getMessage(),
+                'status' => 'error'
+            ]);
+        }
+    }
+}
 ```
 
-## 使用场景2: 验证变量是否正确,返回(bool) TURE or FALSE
+## 工具函数
+
+除了验证器，本工具还提供了一些常用的工具函数：
 
 ```php
-use Jeckleee\Tools\Validator as V;
+use Jeckleee\Tools\Tool;
 
-$phone='123456789';
+// 二维数组根据字段绑定到唯一键
+$users = Tool::arrayBindKey($userList, 'id');
 
-if (V::var($phone)->isMobile()->check()){
-    echo '手机号码正确';
-}else{
-    echo '手机号码不正确'
-}
+// 二维数组根据字段排序
+$sortedUsers = Tool::arraySequence($userList, 'age', 'SORT_DESC');
+
+// 生成树形结构
+$tree = Tool::generateTree($list, 'id', 'parent_id', 'children');
+
+// 生成随机字符串
+$randomStr = Tool::getRandomString(16);
+
+// 计算日期差
+$days = Tool::diffDateDays('2024-01-01', '2024-01-10');
+
+// 字符串脱敏
+$masked = Tool::desensitizeString('13812345678', 3, 4);
+
+// 生成UUID
+$uuid = Tool::generateUUID();
 ```
 
 ## 注意事项
 
-```php
-//查看全部可用的验证规则
-echo json_encode(Validator::$showAllRules);
-```
+1. **验证规则顺序**：建议将 `required` 规则放在最前面，避免对空值进行不必要的验证
+2. **错误消息**：可以为每个规则自定义错误消息，提高用户体验
+3. **性能考虑**：使用 `ifExisted` 规则可以避免对不存在字段的验证
+4. **文件验证**：文件验证支持多种格式：
+   - 原始 `$_FILES` 数组格式
+   - Laravel 的 `Illuminate\Http\UploadedFile` 对象
+   - Webman 的 `support\UploadFile` 对象
+   - 本地文件路径字符串
+5. **条件验证**：合理使用 `requiredWith` 和 `requiredWithout` 可以处理复杂的表单逻辑
+6. **isInt/isNumber 区别**：`isInt` 只接受 int 类型，字符串数字不通过；`isNumber` 可接受字符串数字。
+7. **isFloat**：可限制小数位数。
+8. **isJson**：`true` 时自动转为数组。
+9. **框架兼容性**：本工具设计为框架无关，可在 Laravel、Webman 等框架中使用
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request 来完善这个工具！
+
+## 许可证
+
+MIT License
