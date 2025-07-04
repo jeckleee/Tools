@@ -56,7 +56,7 @@ return [
 | `betweenNumber` | 字段的值必须在某两个数字区间(含) | `betweenNumber(1, 100)` |
 | `cmpNumber` | 对字段进行比较，允许的符号: >, <, >=, <=, !=, = | `cmpNumber('>', 18)` |
 | `isNumber` | 字段的值必须是数字(int 或 float，字符串数字也通过) | `isNumber()` |
-| `isInt` | 字段的值必须是整数（int 类型，字符串数字不通过） | `isInt()` |
+| `isInt` | 字段的值必须是整数（int 类型或整数字符串，如 "123" 也通过） | `isInt()` |
 | `isFloat` | 字段的值必须是小数，可限制小数位数 | `isFloat(2)` |
 | **数组验证** |
 | `inArray` | 字段的值必须在数组中 | `inArray([1,2,3])` |
@@ -64,9 +64,9 @@ return [
 | `isArray` | 字段的值必须是数组 | `isArray()` |
 | **常用格式验证** |
 | `isEmail` | 字段的值必须是邮箱 | `isEmail()` |
-| `isMobile` | 字段的值必须是手机号 | `isMobile()` |
+| `isMobile` | 字段的值必须是中国大陆手机号 | `isMobile()` |
 | `isDateFormat` | 字段的值必须是指定格式的时间字符串 | `isDateFormat('Y-m-d')` |
-| `isIdCard` | 字段的值必须是身份证号 | `isIdCard()` |
+| `isIdCard` | 字段的值必须是中国大陆身份证号 | `isIdCard()` |
 | `isUrl` | 字段的值必须是网址 | `isUrl()` |
 | `isIp` | 字段的值必须是 IP 地址(ipv4 或 ipv6) | `isIp('ipv4')` |
 | `isBool` | 字段的值必须是布尔值 | `isBool()` |
@@ -86,7 +86,7 @@ return [
 - **ifExisted()**
   - 字段存在时才验证，否则跳过。适合可选字段。
 - **isInt()**
-  - 只接受 int 类型，字符串数字（如 "123"）不通过。
+  - 接受 int 类型或整数字符串（如 "123"、"-456" 也通过）。
 - **isNumber()**
   - 接受 int、float 及字符串数字（如 "123"、"12.3"）。
 - **isFloat($decimalPlaces = null)**
@@ -266,7 +266,7 @@ V::field('age')->cmpNumber('>', 18)->verify('年龄必须大于18岁');
 ### 11. isInt/isNumber/isFloat 区别示例
 
 ```php
-V::field('a')->isInt()->verify(); // 只接受 int
+V::field('a')->isInt()->verify(); // 接受 int 或整数字符串（如 "123"）
 V::field('b')->isNumber()->verify(); // 接受 int/float/字符串数字
 V::field('c')->isFloat(2)->verify(); // 浮点数且最多2位小数
 ```

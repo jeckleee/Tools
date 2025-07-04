@@ -596,14 +596,15 @@ class Validator
 	}
 
 	/**
-	 * 校验: 判断是否是整数
+	 * 校验: 判断是否是整数或整数字符串
 	 * @return Validator
 	 */
 	public function isInt(): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是整数';
-			if (is_integer($fieldValue)) {
+			// 支持整数字符串和整数类型
+			if ((is_int($fieldValue) || (is_string($fieldValue) && preg_match('/^-?\\d+$/', $fieldValue)))) {
 				self::$output[$fieldName] = intval($fieldValue);
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
