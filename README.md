@@ -185,7 +185,7 @@ $data = V::array($input, [
     // 当邮箱存在时，验证码必填
     V::field('email')->required()->isEmail()->verify('邮箱格式错误'),
     V::field('email_code')->requiredWith('email')->strLength(4, 6)->verify('邮箱验证码必填'),
-    // 当手机号不存在时，邮箱必填
+    // 当邮箱不存在时，手机号必填
     V::field('phone')->requiredWithout('email')->isMobile()->verify('手机号或邮箱至少填写一个'),
 ]);
 ```
