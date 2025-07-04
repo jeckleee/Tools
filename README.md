@@ -439,10 +439,10 @@ $uuid = Tool::generateUUID();
    - Webman 的 `support\UploadFile` 对象
    - ThinkPHP 的 `think\file\UploadedFile` 对象
 5. **条件验证**：合理使用 `requiredWith` 和 `requiredWithout` 可以处理复杂的表单逻辑。
-6. **isInt/isNumber 区别**：`isInt` 只接受 int 类型，字符串数字不通过；`isNumber` 可接受字符串数字。
+6. **isInt/isNumber 区别**：`isInt` 接受 int 类型 和 字符串整数 ；`isNumber` 可接受字符串数字。
 7. **isFloat**：可限制小数位数。
 8. **isJson**：`true` 时自动转为数组。
-9. **框架兼容性**：本工具设计为框架无关，可在 Laravel、Webman、ThinkPHP 等框架中使用。
+9. **框架兼容性**：可在 Laravel、Webman、ThinkPHP 等框架中使用。
 10. **配置函数依赖**：如需自定义配置，需保证 `config()` 函数可用。
 
 ---
