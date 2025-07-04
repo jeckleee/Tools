@@ -72,7 +72,7 @@ class Validator
 		//常用
 		'isEmail' => '字段的值必须是邮箱',
 		'isMobile' => '字段的值必须是手机号',
-		'isDateTimeInFormat' => '字段的值必须是指定格式的时间字符串(Ymd-His等)',
+		'isDateFormat' => '字段的值必须是指定格式的时间字符串(Ymd-His等)',
 		'isIdCard' => '字段的值必须是身份证号',
 		'isUrl' => '字段的值必须是网址',
 		'isIp' => '字段的值必须是IP地址(ipv4 or ipv6)',
@@ -510,7 +510,7 @@ class Validator
 	 * @param $format
 	 * @return Validator
 	 */
-	public function isDateTimeInFormat($format): Validator
+	public function isDateFormat($format): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($format) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是一个合法的时间字符串.(例如:' . date($format) . ')';
