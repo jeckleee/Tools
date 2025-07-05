@@ -127,9 +127,10 @@ class Validator
 	 */
 	public static function array(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): array
 	{
-		self::initialize($input, $customException, $err_code, $error_return_mode);
-		self::applyRules($rules);
-		return self::$output;
+		$validator = new static();
+		$validator->initialize($input, $customException, $err_code, $error_return_mode);
+		$validator->applyRules($rules);
+		return $validator::$output;
 	}
 
 	//验证方式2:返回字段的值
@@ -145,8 +146,9 @@ class Validator
 	 */
 	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): mixed
 	{
-		self::initialize($input, $customException, $err_code, $error_return_mode);
-		self::applyRules($rules);
+		$validator = new static();
+		$validator->initialize($input, $customException, $err_code, $error_return_mode);
+		$validator->applyRules($rules);
 		return reset(self::$output);
 	}
 
