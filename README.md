@@ -52,6 +52,8 @@ return [
 | `strEndWith` | 字段的值必须以指定的字符串结尾 | `strEndWith('.com')` |
 | `strAlpha` | 字段的值只能由字母组成 | `strAlpha()` |
 | `strAlphaNum` | 字段的值只能由字母和数字组成，`true` 时必须同时包含字母和数字 | `strAlphaNum(true)` |
+| `strLowercase` | 将字段的值转换为小写 | `strLowercase()` |
+| `strUppercase` | 将字段的值转换为大写 | `strUppercase()` |
 | **数字验证** |
 | `betweenNumber` | 字段的值必须在某两个数字区间(含) | `betweenNumber(1, 100)` |
 | `cmpNumber` | 对字段进行比较，允许的符号: >, <, >=, <=, !=, = | `cmpNumber('>', 18)` |
@@ -71,6 +73,7 @@ return [
 | `isIp` | 字段的值必须是 IP 地址(ipv4 或 ipv6) | `isIp('ipv4')` |
 | `isBool` | 字段的值必须是布尔值 | `isBool()` |
 | `isJson` | 字段的值必须是一个 json 字符串，`true` 时转为数组 | `isJson(true)` |
+| `isBase64` | 字段的值必须是有效的Base64编码字符串 | `isBase64()` |
 | **文件验证** |
 | `isFile` | 文件校验，支持多种格式：<br/>1. 原始 `$_FILES` 数组<br/>2. Laravel 的 `Illuminate\Http\UploadedFile` 对象<br/>3. Webman 的 `support\UploadFile` 对象<br/>4. ThinkPHP 的 `think\file\UploadedFile` 对象<br/>常见用法：<br/>- `isFile($_FILES, ['jpg','png'], 1024)`<br/>- `isFile($request->file(), ['pdf'], 2048)`<br/>校验通过返回 true，否则抛出异常 | `isFile($_FILES, ['jpg','png'], 1024)` |
 | **其他验证** |
@@ -249,21 +252,31 @@ public function upload(Request $request)
 V::field('data')->isJson(true)->verify('数据格式错误');
 ```
 
-### 9. 浮点数校验
+### 9. Base64 编码校验
+
+```php
+// 校验Base64编码字符串
+V::field('image_data')->isBase64()->verify('图片数据格式错误');
+
+// 校验Base64编码的JSON数据
+V::field('config_data')->isBase64()->isJson(true)->verify('配置数据格式错误');
+```
+
+### 10. 浮点数校验
 
 ```php
 // 校验并限制 2 位小数
 V::field('price')->isFloat(2)->verify('价格格式错误');
 ```
 
-### 10. 数字比较
+### 11. 数字比较
 
 ```php
 // 年龄大于 18
 V::field('age')->cmpNumber('>', 18)->verify('年龄必须大于18岁');
 ```
 
-### 11. isInt/isNumber/isFloat 区别示例
+### 12. isInt/isNumber/isFloat 区别示例
 
 ```php
 V::field('a')->isInt()->verify(); // 接受 int 或整数字符串（如 "123"）
@@ -271,7 +284,7 @@ V::field('b')->isNumber()->verify(); // 接受 int/float/字符串数字
 V::field('c')->isFloat(2)->verify(); // 浮点数且最多2位小数
 ```
 
-### 12. isFile 返回值说明
+### 13. isFile 返回值说明
 
 ```php
 // 校验通过返回 true，否则抛出异常
@@ -279,10 +292,19 @@ $result = V::field('avatar')->isFile($_FILES, ['jpg'], 1024)->verify();
 // $result === true
 ```
 
-### 13. 自定义函数校验
+### 14. 自定义函数校验
 
 ```php
 V::field('score')->fun(function($val){ return $val > 60; })->verify('分数必须大于60');
+```
+
+### 15. 字符串大小写转换
+
+```php
+// 转小写
+V::field('username')->strLowercase()->verify('用户名转小写失败');
+// 转大写
+V::field('code')->strUppercase()->verify('验证码转大写失败');
 ```
 
 ---

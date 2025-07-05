@@ -33,9 +33,9 @@ class Validator
 	 */
 	private string $fieldName = '';
 	/**
-	 * @var
+	 * @var mixed
 	 */
-	private $variable;
+	private mixed $variable;
 
 	/**
 	 * @var string
@@ -56,6 +56,8 @@ class Validator
 		'strEndWith' => '字段的值必须以指定的字符串结尾',
 		'strAlpha' => '字段的值只能由字母组成',
 		'strAlphaNum' => '字段的值只能由字母和数字组成,$type=true时要求必须同时包含字母和数字',
+		'strLowercase' => '将字段的值转换为小写',
+		'strUppercase' => '将字段的值转换为大写',
 
 		//数字相关
 		'betweenNumber' => '字段的值必须在某个区间',
@@ -82,6 +84,7 @@ class Validator
 		//其他
 		'isBool' => '字段的值必须是布尔值,为 "1", "true", "on" and "yes" 返回 TRUE,为 "0", "false", "off" and "no" 返回 FALSE',
 		'isJson' => '字段的值必须是一个json字符串,允许传入参数将其转为Array',
+		'isBase64' => '字段的值必须是有效的Base64编码字符串',
 		'withRegex' => '使用正则表达式验证字段',
 		'requiredWith' => '字段依赖于另一个字段,当另一个字段存在且不为空时,当前字段必填',
 		'requiredWithout' => '字段依赖于另一个字段,当另一个字段不存在或为空时,当前字段必填',
@@ -105,7 +108,7 @@ class Validator
 			'error_return_mode' => 'immediate'
 		];
 		if (function_exists('config')) {
-			$config = config('plugin.jeckleee.tools.app', $config);
+			$config = \config('plugin.jeckleee.tools.app', $config);
 		}
 		return $config;
 	}
@@ -404,11 +407,36 @@ class Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '必须是数字';
-			if (is_numeric($fieldValue)) {
-				if (is_float((float)$fieldValue)) {
-					self::$output[$fieldName] = floatval($fieldValue);
+			
+			// 检查是否为数字（包括科学计数法）
+			if (!is_numeric($fieldValue)) {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+			
+			// 处理科学计数法
+			if (is_string($fieldValue) && (strpos($fieldValue, 'e') !== false || strpos($fieldValue, 'E') !== false)) {
+				$floatValue = (float)$fieldValue;
+				self::$output[$fieldName] = $floatValue;
+				return;
+			}
+			
+			// 区分整数和浮点数
+			if (is_int($fieldValue)) {
+				self::$output[$fieldName] = $fieldValue;
+			} elseif (is_float($fieldValue)) {
+				self::$output[$fieldName] = $fieldValue;
+			} elseif (is_string($fieldValue)) {
+				// 检查是否为整数字符串
+				if (preg_match('/^-?\d+$/', $fieldValue)) {
+					self::$output[$fieldName] = (int)$fieldValue;
 				} else {
-					self::$output[$fieldName] = intval($fieldValue);
+					// 检查是否为浮点数字符串
+					if (preg_match('/^-?\d*\.\d+$/', $fieldValue)) {
+						self::$output[$fieldName] = (float)$fieldValue;
+					} else {
+						// 其他数字格式（如科学计数法）
+						self::$output[$fieldName] = (float)$fieldValue;
+					}
 				}
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
@@ -419,12 +447,13 @@ class Validator
 	/**
 	 * 校验: 判断字符串长度
 	 * @param int $min
-	 * @param int $max
+	 * @param int|null $max
 	 * @return Validator
 	 */
-	public function strLength(int $min = 1, int $max = 32): Validator
+	public function strLength(int $min = 1, int|null $max = null): Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($min, $max) {
+			$max = $max === null ? $min : $max;
 			$_msg = $min === $max ? '为' . $min . '个字符' : '在' . $min . '~' . $max . '个字符之间';
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '的长度必须' . $_msg;
 			$length = mb_strlen($fieldValue, 'utf-8');
@@ -629,10 +658,20 @@ class Validator
 				throw new self::$customException($msg, $item['err_code']);
 			}
 
+			// 检查小数位数限制
 			if ($decimalPlaces !== null) {
-				// 将浮点数转换为字符串并分割小数部分
-				$parts = explode('.', (string)$floatValue);
-				if (isset($parts[1]) && strlen($parts[1]) > $decimalPlaces) {
+				// 将浮点数转换为字符串，避免科学计数法
+				$stringValue = number_format($floatValue, $decimalPlaces, '.', '');
+				
+				// 移除末尾的0
+				$stringValue = rtrim(rtrim($stringValue, '0'), '.');
+				
+				// 计算实际小数位数
+				$parts = explode('.', $stringValue);
+				$actualDecimalPlaces = isset($parts[1]) ? strlen($parts[1]) : 0;
+				
+				if ($actualDecimalPlaces > $decimalPlaces) {
+					$msg = $item['err_msg'] ?: '参数:' . $fieldName . '小数位数不能超过' . $decimalPlaces . '位';
 					throw new self::$customException($msg, $item['err_code']);
 				}
 			}
@@ -732,12 +771,28 @@ class Validator
 	{
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($to_array) {
 			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是JSON字符串';
-			//判断是否是json字符串
-			if (is_string($fieldValue) && is_array(json_decode($fieldValue, true))) {
-				self::$output[$fieldName] = $to_array ? json_decode($fieldValue, true) : $fieldValue;
-			} else {
+			
+			// 检查是否为字符串
+			if (!is_string($fieldValue)) {
 				throw new self::$customException($msg, $item['err_code']);
 			}
+			
+			// 尝试解析JSON
+			$decoded = json_decode($fieldValue, true);
+			
+			// 检查JSON解析是否成功
+			if (json_last_error() !== JSON_ERROR_NONE) {
+				$errorMsg = $item['err_msg'] ?: '参数:' . $fieldName . 'JSON格式错误: ' . json_last_error_msg();
+				throw new self::$customException($errorMsg, $item['err_code']);
+			}
+			
+			// 检查解析结果是否为数组或对象
+			if (!is_array($decoded) && !is_object($decoded)) {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+			
+			// 返回结果
+			self::$output[$fieldName] = $to_array ? $decoded : $fieldValue;
 		}, ['to_array' => $to_array]);
 	}
 
@@ -956,5 +1011,98 @@ class Validator
 				throw new self::$customException($msg, $item['err_code']);
 			}
 		}, ['compare_field' => $field]);
+	}
+
+	/**
+	 * 校验: 判断是否是Base64编码字符串
+	 * @return Validator
+	 */
+	public function isBase64(): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是有效的Base64编码字符串';
+			
+			// 检查是否为字符串
+			if (!is_string($fieldValue)) {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+			
+			// 移除可能的换行符和空格
+			$cleanedValue = preg_replace('/\s+/', '', $fieldValue);
+			
+			// 空字符串不是有效的Base64
+			if ($cleanedValue === '') {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+			
+			// 检查Base64格式 - 更严格的正则表达式
+			if (preg_match('/^[A-Za-z0-9+\/]+={0,2}$/', $cleanedValue)) {
+				// 检查长度是否为4的倍数
+				if (strlen($cleanedValue) % 4 === 0) {
+					// 检查填充字符的位置是否正确
+					$paddingCount = substr_count($cleanedValue, '=');
+					if ($paddingCount === 0 || $paddingCount === 1 || $paddingCount === 2) {
+						// 检查填充字符是否在正确位置
+						if ($paddingCount === 0 || strpos($cleanedValue, '=') === strlen($cleanedValue) - $paddingCount) {
+							// 尝试解码验证
+							$decoded = base64_decode($cleanedValue, true);
+							if ($decoded !== false) {
+								// 重新编码验证是否一致
+								$reEncoded = base64_encode($decoded);
+								if ($reEncoded === $cleanedValue) {
+									self::$output[$fieldName] = $fieldValue;
+								} else {
+									throw new self::$customException($msg, $item['err_code']);
+								}
+							} else {
+								throw new self::$customException($msg, $item['err_code']);
+							}
+						} else {
+							throw new self::$customException($msg, $item['err_code']);
+						}
+					} else {
+						throw new self::$customException($msg, $item['err_code']);
+					}
+				} else {
+					throw new self::$customException($msg, $item['err_code']);
+				}
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+		});
+	}
+
+	/**
+	 * 字符串转为小写
+	 * @return Validator
+	 */
+	public function strLowercase(): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是字符串，无法转为小写';
+			if (is_string($fieldValue)) {
+				self::$input[$fieldName] = mb_strtolower($fieldValue, 'UTF-8');
+				self::$output[$fieldName] = self::$input[$fieldName];
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+		});
+	}
+
+	/**
+	 * 字符串转为大写
+	 * @return Validator
+	 */
+	public function strUppercase(): Validator
+	{
+		return $this->addRule(function ($fieldName, $fieldValue, $item) {
+			$msg = $item['err_msg'] ?: '参数:' . $fieldName . '不是字符串，无法转为大写';
+			if (is_string($fieldValue)) {
+				self::$input[$fieldName] = mb_strtoupper($fieldValue, 'UTF-8');
+				self::$output[$fieldName] = self::$input[$fieldName];
+			} else {
+				throw new self::$customException($msg, $item['err_code']);
+			}
+		});
 	}
 }
