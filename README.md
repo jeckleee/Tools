@@ -258,8 +258,6 @@ V::field('data')->isJson(true)->verify('数据格式错误');
 // 校验Base64编码字符串
 V::field('image_data')->isBase64()->verify('图片数据格式错误');
 
-// 校验Base64编码的JSON数据
-V::field('config_data')->isBase64()->isJson(true)->verify('配置数据格式错误');
 ```
 
 ### 10. 浮点数校验
