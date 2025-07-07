@@ -36,49 +36,49 @@ return [
 
 ## 验证规则总览
 
-| 验证规则 | 说明 | 参数示例 |
-|:---------|:-----|:---------|
+| 验证规则 | 说明                                                                                                                                                                                                                                                                                                                     | 参数示例 |
+|:---------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
 | **基础验证** |
-| `required` | 字段必填，可设置一个默认值 | `required('默认值')` |
-| `ifExisted` | 字段存在时才验证，否则跳过 | `ifExisted()` |
-| `requiredWith` | 当指定字段存在且不为空时，当前字段必填 | `requiredWith('email')` |
-| `requiredWithout` | 当指定字段不存在或为空时，当前字段必填 | `requiredWithout('phone')` |
-| `same` | 当前字段值必须与指定字段值相同 | `same('password')` |
-| `different` | 当前字段值必须与指定字段值不同 | `different('old_password')` |
+| `required` | 字段必填，可设置一个默认值                                                                                                                                                                                                                                                                                                          | `required('默认值')` |
+| `ifExisted` | 字段存在时才验证，否则跳过                                                                                                                                                                                                                                                                                                          | `ifExisted()` |
+| `requiredWith` | 当指定字段存在且不为空时，当前字段必填                                                                                                                                                                                                                                                                                                    | `requiredWith('email')` |
+| `requiredWithout` | 当指定字段不存在或为空时，当前字段必填                                                                                                                                                                                                                                                                                                    | `requiredWithout('phone')` |
+| `same` | 当前字段值必须与指定字段值相同                                                                                                                                                                                                                                                                                                        | `same('password')` |
+| `different` | 当前字段值必须与指定字段值不同                                                                                                                                                                                                                                                                                                        | `different('old_password')` |
 | **字符串验证** |
-| `strTrim` | 去除字段两端的空格、制表符、换行符等 | `strTrim()` |
-| `strLength` | 字段的值必须在指定范围的长度 | `strLength(3, 32)` |
-| `strStartWith` | 字段的值必须以指定的字符串开始 | `strStartWith('http')` |
-| `strEndWith` | 字段的值必须以指定的字符串结尾 | `strEndWith('.com')` |
-| `strAlpha` | 字段的值只能由字母组成 | `strAlpha()` |
-| `strAlphaNum` | 字段的值只能由字母和数字组成，`true` 时必须同时包含字母和数字 | `strAlphaNum(true)` |
-| `strLowercase` | 将字段的值转换为小写 | `strLowercase()` |
-| `strUppercase` | 将字段的值转换为大写 | `strUppercase()` |
+| `strTrim` | 去除字段两端的空格、制表符、换行符等                                                                                                                                                                                                                                                                                                     | `strTrim()` |
+| `strLength` | 字段的值必须在指定范围的长度                                                                                                                                                                                                                                                                                                         | `strLength(3, 32)` |
+| `strStartWith` | 字段的值必须以指定的字符串开始                                                                                                                                                                                                                                                                                                        | `strStartWith('http')` |
+| `strEndWith` | 字段的值必须以指定的字符串结尾                                                                                                                                                                                                                                                                                                        | `strEndWith('.com')` |
+| `strAlpha` | 字段的值只能由字母组成                                                                                                                                                                                                                                                                                                            | `strAlpha()` |
+| `strAlphaNum` | 字段的值只能由字母和数字组成，`true` 时必须同时包含字母和数字                                                                                                                                                                                                                                                                                     | `strAlphaNum(true)` |
+| `strLowercase` | 将字段的值转换为小写                                                                                                                                                                                                                                                                                                             | `strLowercase()` |
+| `strUppercase` | 将字段的值转换为大写                                                                                                                                                                                                                                                                                                             | `strUppercase()` |
 | **数字验证** |
-| `betweenNumber` | 字段的值必须在某两个数字区间(含) | `betweenNumber(1, 100)` |
-| `cmpNumber` | 对字段进行比较，允许的符号: >, <, >=, <=, !=, = | `cmpNumber('>', 18)` |
-| `isNumber` | 字段的值必须是数字(int 或 float，字符串数字也通过) | `isNumber()` |
-| `isInt` | 字段的值必须是整数（int 类型或整数字符串，如 "123" 也通过） | `isInt()` |
-| `isFloat` | 字段的值必须是小数，可限制小数位数 | `isFloat(2)` |
+| `betweenNumber` | 字段的值必须在某两个数字区间(含)                                                                                                                                                                                                                                                                                                      | `betweenNumber(1, 100)` |
+| `cmpNumber` | 对字段进行比较，允许的符号: >, <, >=, <=, !=, =                                                                                                                                                                                                                                                                                     | `cmpNumber('>', 18)` |
+| `isNumber` | 字段的值必须是数字(int 或 float，字符串数字也通过)                                                                                                                                                                                                                                                                                        | `isNumber()` |
+| `isInt` | 字段的值必须是整数（int 类型或整数字符串，如 "123" 也通过）                                                                                                                                                                                                                                                                                    | `isInt()` |
+| `isFloat` | 字段的值必须是小数，可限制小数位数                                                                                                                                                                                                                                                                                                      | `isFloat(2)` |
 | **数组验证** |
-| `inArray` | 字段的值必须在数组中 | `inArray([1,2,3])` |
-| `notInArray` | 字段的值必须不在数组中 | `notInArray(['admin'])` |
-| `isArray` | 字段的值必须是数组 | `isArray()` |
+| `inArray` | 字段的值必须在数组中                                                                                                                                                                                                                                                                                                             | `inArray([1,2,3])` |
+| `notInArray` | 字段的值必须不在数组中                                                                                                                                                                                                                                                                                                            | `notInArray(['admin'])` |
+| `isArray` | 字段的值必须是数组                                                                                                                                                                                                                                                                                                              | `isArray()` |
 | **常用格式验证** |
-| `isEmail` | 字段的值必须是邮箱 | `isEmail()` |
-| `isMobile` | 字段的值必须是中国大陆手机号 | `isMobile()` |
-| `isDateFormat` | 字段的值必须是指定格式的时间字符串 | `isDateFormat('Y-m-d')` |
-| `isIdCard` | 字段的值必须是中国大陆身份证号 | `isIdCard()` |
-| `isUrl` | 字段的值必须是网址 | `isUrl()` |
-| `isIp` | 字段的值必须是 IP 地址(ipv4 或 ipv6) | `isIp('ipv4')` |
-| `isBool` | 字段的值必须是布尔值 | `isBool()` |
-| `isJson` | 字段的值必须是一个 json 字符串，`true` 时转为数组 | `isJson(true)` |
-| `isBase64` | 字段的值必须是有效的Base64编码字符串 | `isBase64()` |
+| `isEmail` | 字段的值必须是邮箱                                                                                                                                                                                                                                                                                                              | `isEmail()` |
+| `isMobile` | 字段的值必须是中国大陆手机号                                                                                                                                                                                                                                                                                                         | `isMobile()` |
+| `isDateFormat` | 字段的值必须是指定格式的时间字符串                                                                                                                                                                                                                                                                                                      | `isDateFormat('Y-m-d')` |
+| `isIdCard` | 字段的值必须是中国大陆身份证号                                                                                                                                                                                                                                                                                                        | `isIdCard()` |
+| `isUrl` | 字段的值必须是网址                                                                                                                                                                                                                                                                                                              | `isUrl()` |
+| `isIp` | 字段的值必须是 IP 地址(ipv4 或 ipv6)                                                                                                                                                                                                                                                                                             | `isIp('ipv4')` |
+| `isBool` | 字段的值必须是布尔值                                                                                                                                                                                                                                                                                                             | `isBool()` |
+| `isJson` | 字段的值必须是一个 json 字符串，`true` 时转为数组                                                                                                                                                                                                                                                                                        | `isJson(true)` |
+| `isBase64` | 字段的值必须是有效的Base64编码字符串                                                                                                                                                                                                                                                                                                  | `isBase64()` |
 | **文件验证** |
-| `isFile` | 文件校验，支持多种格式：<br/>1. 原始 `$_FILES` 数组<br/>2. Laravel 的 `Illuminate\Http\UploadedFile` 对象<br/>3. Webman 的 `support\UploadFile` 对象<br/>4. ThinkPHP 的 `think\file\UploadedFile` 对象<br/>常见用法：<br/>- `isFile($_FILES, ['jpg','png'], 1024)`<br/>- `isFile($request->file(), ['pdf'], 2048)`<br/>校验通过返回 ''，否则抛出异常 | `isFile($_FILES, ['jpg','png'], 1024)` |
+| `isFile` | 文件校验，支持多种格式：<br/>1. 原始 `$_FILES` 数组<br/>2. Laravel 的 `Illuminate\Http\UploadedFile` 对象<br/>3. Webman 的 `support\UploadFile` 对象<br/>4. ThinkPHP 的 `think\file\UploadedFile` 对象<br/>常见用法：<br/>- `isFile($_FILES, ['jpg','png'], 1024)`<br/>- `isFile($request->file(), ['pdf'], 2048)`<br/>校验通过返回完整文件名(test.xlsx)，否则抛出异常 | `isFile($_FILES, ['jpg','png'], 1024)` |
 | **其他验证** |
-| `withRegex` | 使用正则表达式验证字段 | `withRegex('/^[a-z]+$/')` |
-| `fun` | 使用自定义验证函数 | `fun(function($val){ return $val > 0; })` |
+| `withRegex` | 使用正则表达式验证字段                                                                                                                                                                                                                                                                                                            | `withRegex('/^[a-z]+$/')` |
+| `fun` | 使用自定义验证函数                                                                                                                                                                                                                                                                                                              | `fun(function($val){ return $val > 0; })` |
 
 ---
 
@@ -287,7 +287,7 @@ V::field('c')->isFloat(2)->verify(); // 浮点数且最多2位小数
 ```php
 // 校验通过返回 ''，否则抛出异常
 $result = V::field('avatar')->isFile($_FILES, ['jpg'], 1024)->verify();
-// $result === ''
+// $result === '上传的完整文件名'
 
 ```
 

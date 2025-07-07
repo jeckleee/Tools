@@ -927,7 +927,7 @@ class Validator
 			if ($ext && ($fileExt === null || !in_array($fileExt, $ext))) {
 				throw new self::$customException($typeMsg, $item['err_code']);
 			}
-			self::$output[$fieldName] = '';
+			self::$output[$fieldName] = $originalName;
 		}, ['maxSize_Kb' => $maxSize_Kb, 'ext' => $ext]);
 	}
 
