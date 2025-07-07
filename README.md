@@ -285,9 +285,10 @@ V::field('c')->isFloat(2)->verify(); // 浮点数且最多2位小数
 ### 13. isFile 返回值说明
 
 ```php
-// 校验通过返回 true，否则抛出异常
+// 校验通过返回 ''，否则抛出异常
 $result = V::field('avatar')->isFile($_FILES, ['jpg'], 1024)->verify();
-// $result === true
+// $result === ''
+
 ```
 
 ### 14. 自定义函数校验
