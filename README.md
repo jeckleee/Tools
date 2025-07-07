@@ -75,7 +75,7 @@ return [
 | `isJson` | 字段的值必须是一个 json 字符串，`true` 时转为数组 | `isJson(true)` |
 | `isBase64` | 字段的值必须是有效的Base64编码字符串 | `isBase64()` |
 | **文件验证** |
-| `isFile` | 文件校验，支持多种格式：<br/>1. 原始 `$_FILES` 数组<br/>2. Laravel 的 `Illuminate\Http\UploadedFile` 对象<br/>3. Webman 的 `support\UploadFile` 对象<br/>4. ThinkPHP 的 `think\file\UploadedFile` 对象<br/>常见用法：<br/>- `isFile($_FILES, ['jpg','png'], 1024)`<br/>- `isFile($request->file(), ['pdf'], 2048)`<br/>校验通过返回 true，否则抛出异常 | `isFile($_FILES, ['jpg','png'], 1024)` |
+| `isFile` | 文件校验，支持多种格式：<br/>1. 原始 `$_FILES` 数组<br/>2. Laravel 的 `Illuminate\Http\UploadedFile` 对象<br/>3. Webman 的 `support\UploadFile` 对象<br/>4. ThinkPHP 的 `think\file\UploadedFile` 对象<br/>常见用法：<br/>- `isFile($_FILES, ['jpg','png'], 1024)`<br/>- `isFile($request->file(), ['pdf'], 2048)`<br/>校验通过返回 ''，否则抛出异常 | `isFile($_FILES, ['jpg','png'], 1024)` |
 | **其他验证** |
 | `withRegex` | 使用正则表达式验证字段 | `withRegex('/^[a-z]+$/')` |
 | `fun` | 使用自定义验证函数 | `fun(function($val){ return $val > 0; })` |
