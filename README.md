@@ -9,7 +9,7 @@
 - **支持多种验证方式** : 批量验证、单字段验证、变量验证
 - **灵活的配置** : 支持自定义异常、错误码、错误返回模式
 - **丰富的验证规则** : 覆盖大部分常用验证场景
-- **框架无关** : 可在 Laravel、Webman、ThinkPHP 等主流 PHP 框架中直接使用
+- **框架兼容** : 可在 Laravel、Webman、ThinkPHP 等主流 PHP 框架中直接使用
 
 ## 安装
 
@@ -75,7 +75,7 @@ return [
 | `isJson` | 字段的值必须是一个 json 字符串，`true` 时转为数组 | `isJson(true)` |
 | `isBase64` | 字段的值必须是有效的Base64编码字符串 | `isBase64()` |
 | **文件验证** |
-| `isFile` | 文件校验，支持多种格式：<br/>1. 原始 `$_FILES` 数组<br/>2. Laravel 的 `Illuminate\Http\UploadedFile` 对象<br/>3. Webman 的 `support\UploadFile` 对象<br/>4. ThinkPHP 的 `think\file\UploadedFile` 对象<br/>常见用法：<br/>- `isFile($_FILES, ['jpg','png'], 1024)`<br/>- `isFile($request->file(), ['pdf'], 2048)`<br/>校验通过返回 true，否则抛出异常 | `isFile($_FILES, ['jpg','png'], 1024)` |
+| `isFile` | 文件校验，支持多种格式：<br/>1. 原始 `$_FILES` 数组<br/>2. Laravel 的 `Illuminate\Http\UploadedFile` 对象<br/>3. Webman 的 `support\UploadFile` 对象<br/>4. ThinkPHP 的 `think\file\UploadedFile` 对象<br/>常见用法：<br/>- `isFile($_FILES, ['jpg','png'], 1024)`<br/>- `isFile($request->file(), ['pdf'], 2048)`<br/>校验通过返回 ''，否则抛出异常 | `isFile($_FILES, ['jpg','png'], 1024)` |
 | **其他验证** |
 | `withRegex` | 使用正则表达式验证字段 | `withRegex('/^[a-z]+$/')` |
 | `fun` | 使用自定义验证函数 | `fun(function($val){ return $val > 0; })` |
@@ -95,7 +95,7 @@ return [
 - **isFloat($decimalPlaces = null)**
   - 校验为浮点数，若指定 `$decimalPlaces`，则小数位数不能超过该值。
 - **isFile($file, $ext = [], $maxSize_Kb = 500)**
-  - 支持多种文件对象，校验通过返回 true，否则抛出异常。
+  - 支持多种文件对象，校验通过返回 ''，否则抛出异常。
   - `$file` 可为 `$_FILES`、Laravel/Webman/ThinkPHP 上传对象。
   - `$ext` 限制扩展名，空数组不限制。
   - `$maxSize_Kb` 最大文件大小，单位 KB，默认 500KB。
