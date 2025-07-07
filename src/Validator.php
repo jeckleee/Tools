@@ -875,7 +875,9 @@ class Validator
 			$fileExt = null;
 			$originalName = null;
 			$fileObj = $file[$fieldName] ?? $file;
-
+			if (!$fileObj) {
+				throw new self::$customException($msg, $item['err_code']);
+			}
 			// 1. 原生 $_FILES 格式
 			if (is_array($fileObj) && isset($fileObj['tmp_name'])) {
 				if (is_uploaded_file($fileObj['tmp_name'])) {
