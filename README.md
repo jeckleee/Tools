@@ -389,7 +389,7 @@ class UserController extends BaseController
             //需要自己处理处理头像的上传...todo
             $avatar = $request->file('avatar')->store('uploads/avatar/avatar');
             
-            //将头像地址保存在数据库中
+            //将头像地址增加到$input数据中
             $input['avatar']=$avatar;
             // 创建用户
             $user = User::create($input);
