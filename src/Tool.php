@@ -109,9 +109,9 @@ class Tool
 		$data = array();
 		foreach ($list as $item) {
 			if (isset($list[$item[$parent_field]])) {
-				$list[$item[$parent_field]][$children_field][] =& $list[$item[$union_field]];
+				$list[$item[$parent_field]][$children_field][] = &$list[$item[$union_field]];
 			} else {
-				$data[] =& $list[$item[$union_field]];
+				$data[] = &$list[$item[$union_field]];
 			}
 		}
 		return $data;
@@ -156,29 +156,29 @@ class Tool
 	}
 
 	/**
-	 * 字符串脱敏
+	 * 字符串脱敏（支持中文字符）
 	 * @param $inputString string 需要脱敏的字符串
-	 * @param $startLength int 字符串开头保留的长度
-	 * @param $endLength  int 字符串末尾保留的长度
+	 * @param $startLength int 字符串开头保留的长度（字符数，非字节数）
+	 * @param $endLength  int 字符串末尾保留的长度（字符数，非字节数）
 	 * @param $maskChar string 脱敏字符， 默认为 *
-	 * @param $maxLength int|null 最大长度，如果超过最大长度，则减少$maskChar的数量，默认为 null，表示不 设置最大长度
+	 * @param $maxLength int|null 最大长度（字符数），如果超过最大长度，则减少$maskChar的数量，默认为 null，表示不设置最大长度
 	 * @return string
 	 */
-	public static function desensitizeString(string $inputString, int $startLength, int $endLength, string $maskChar = '*', int $maxLength = null): string
+	public static function desensitizeString(string $inputString, int $startLength, int $endLength, string $maskChar = '*', int|null $maxLength = null): string
 	{
-		// 获取字符串的长度
-		$length = strlen($inputString);
+		// 获取字符串的长度（字符数，支持多字节字符）
+		$length = mb_strlen($inputString, 'UTF-8');
 
 		// 如果字符串长度小于等于开头和结尾保留的长度之和，则直接返回原字符串
 		if ($length <= ($startLength + $endLength)) {
 			return $inputString;
 		}
 
-		// 截取开头保留的部分
-		$start = substr($inputString, 0, $startLength);
+		// 截取开头保留的部分（使用多字节安全函数）
+		$start = mb_substr($inputString, 0, $startLength, 'UTF-8');
 
-		// 截取结尾保留的部分
-		$end = substr($inputString, -$endLength);
+		// 截取结尾保留的部分（使用多字节安全函数）
+		$end = mb_substr($inputString, -$endLength, null, 'UTF-8');
 
 		// 计算需要替换的部分的长度
 		$maskLength = $length - $startLength - $endLength;
@@ -211,7 +211,8 @@ class Tool
 		return sprintf(
 			'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 			// 32 bits for "time_low"
-			mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff),
 
 			// 16 bits for "time_mid"
 			mt_rand(0, 0xffff),
@@ -226,7 +227,9 @@ class Tool
 			mt_rand(0, 0x3fff) | 0x8000,
 
 			// 48 bits for "node"
-			mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff)
 		);
 	}
 
@@ -551,7 +554,4 @@ class Tool
 			}
 		}
 	}
-
-
-
 }
