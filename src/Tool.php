@@ -16,6 +16,52 @@ class Tool
 	 */
 	private static array $timeit = [];
 
+	/**
+	 * 显示所有公开访问的函数,私有方法不出现在这里
+	 * @return array
+	 */
+	public static function showAllFunction(): array
+	{
+		return [
+			// 数组操作相关
+			'arrayBindKey' => '二维数组根据字段绑定到唯一键',
+			'arraySequence' => '二维数组根据字段进行排序',
+			'arrayGroupBy' => '按键分组',
+			'arrayUniqueBy' => '按键去重(稳定去重，保留首次出现)',
+			'arrayChunkFixed' => '定长分块',
+			'arrayPartition' => '二分分组：按谓词拆分为 [匹配, 不匹配]',
+
+			// 树形结构操作
+			'generateTree' => '生成树形结构',
+			'flattenTree' => '扁平化树',
+			'findInTree' => '在树中查找符合谓词的节点',
+			'pathInTree' => '查找树中节点路径',
+			'pathInFlat' => '从扁平数组中获取节点路径',
+
+			// 字符串处理
+			'getRandomString' => '生成随机字符串',
+			'maskSecret' => '字符串脱敏（支持中文字符）',
+			'humanizeDiff' => '人性化时间差，如：刚刚、3分钟前、2小时前、5天前',
+			'humanBytes' => '人类可读的字节展示，如 1.23 MB',
+			'buildQuery' => '构建稳定排序的查询字符串（RFC3986）',
+
+			// UUID生成
+			'generateUUID' => '生成不安全的uuid',
+			'uuidV4' => '安全 UUID v4',
+			'uuidV7' => 'UUID v7 (时间有序)',
+
+			// 随机数生成
+			'randomInt' => '生成安全随机整数',
+			'randomFloat' => '生成随机浮点数（含最小值，含最大值）',
+
+			// 日期时间
+			'diffDateDays' => '计算两个日期之间的天数差',
+
+			// 工具函数
+			'retry' => '重试执行',
+		];
+	}
+
 
 	private static function getConfig(): array
 	{
@@ -164,7 +210,7 @@ class Tool
 	 * @param $maxLength int|null 最大长度（字符数），如果超过最大长度，则减少$maskChar的数量，默认为 null，表示不设置最大长度
 	 * @return string
 	 */
-	public static function desensitizeString(string $inputString, int $startLength, int $endLength, string $maskChar = '*', int|null $maxLength = null): string
+	public static function maskSecret(string $inputString, int $startLength, int $endLength, string $maskChar = '*', int|null $maxLength = null): string
 	{
 		// 获取字符串的长度（字符数，支持多字节字符）
 		$length = mb_strlen($inputString, 'UTF-8');
@@ -235,9 +281,6 @@ class Tool
 
 
 
-
-
-
 	/**
 	 * 按键分组
 	 * @param array $array
@@ -284,10 +327,7 @@ class Tool
 	 */
 	public static function arrayChunkFixed(array $array, int $size): array
 	{
-		$config = self::getConfig();
-		if ($size <= 0) {
-			throw new $config['exception']('分块大小必须大于0', $config['exception_code']);
-		}
+		if ($size <= 0) return $array;
 		return array_chunk($array, $size);
 	}
 
@@ -520,21 +560,85 @@ class Tool
 	}
 
 	/**
-	 * 掩码敏感信息
-	 * @param string $value
-	 * @param int $left
-	 * @param int $right
-	 * @param string $maskChar
-	 * @param int|null $maxLength
-	 * @return string
+	 * DFS 查找节点路径的辅助方法
+	 * @param array $tree
+	 * @param mixed $targetId
+	 * @param string $idField
+	 * @param string $children
+	 * @param array $path
+	 * @return bool
 	 */
-	public static function maskSecret(string $value, int $left = 2, int $right = 2, string $maskChar = '*', ?int $maxLength = null): string
+	private static function pathInTreeDfs(array $tree, mixed $targetId, string $idField, string $children, array &$path): bool
 	{
-		if ($maxLength === null) {
-			return self::desensitizeString($value, $left, $right, $maskChar);
+		foreach ($tree as $node) {
+			// 将当前节点添加到路径中
+			$path[] = $node;
+
+			// 检查当前节点是否是目标节点
+			if (isset($node[$idField]) && $node[$idField] === $targetId) {
+				return true; // 找到目标节点，返回 true
+			}
+
+			// 如果有子节点，递归搜索
+			if (isset($node[$children]) && is_array($node[$children])) {
+				if (self::pathInTreeDfs($node[$children], $targetId, $idField, $children, $path)) {
+					return true; // 在子节点中找到了目标
+				}
+			}
+
+			// 当前路径没有找到目标，移除当前节点
+			array_pop($path);
 		}
-		return self::desensitizeString($value, $left, $right, $maskChar, $maxLength);
+
+		return false; // 没有找到目标节点
 	}
+
+	/**
+	 * 从扁平数组中获取节点路径
+	 * @param array $flatArray 扁平数组
+	 * @param mixed $id 目标节点ID
+	 * @param string $idField ID字段名
+	 * @param string $parentField 父级字段名
+	 * @return array 路径数组(从根到目标)，未找到返回空数组
+	 */
+	public static function pathInFlat(array $flatArray, mixed $id, string $idField = 'id', string $parentField = 'parent_id'): array
+	{
+		// 将扁平数组转换为以ID为键的映射
+		$nodeMap = [];
+		foreach ($flatArray as $node) {
+			if (isset($node[$idField])) {
+				$nodeMap[$node[$idField]] = $node;
+			}
+		}
+
+		// 检查目标节点是否存在
+		if (!isset($nodeMap[$id])) {
+			return [];
+		}
+
+		$path = [];
+		$currentId = $id;
+
+		// 从目标节点向上追溯到根节点
+		while ($currentId !== null && isset($nodeMap[$currentId])) {
+			$currentNode = $nodeMap[$currentId];
+			array_unshift($path, $currentNode); // 插入到数组开头
+
+			// 获取父级ID
+			$parentId = $currentNode[$parentField] ?? null;
+
+			// 避免无限循环（防止数据错误导致的循环引用）
+			if ($parentId === $currentId) {
+				break;
+			}
+
+			$currentId = $parentId;
+		}
+
+		return $path;
+	}
+
+
 
 	/**
 	 * 递归按键排序（仅关联数组）
