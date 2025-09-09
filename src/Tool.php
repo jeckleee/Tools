@@ -4,10 +4,17 @@ namespace Jeckleee\Tools;
 
 use DateTime;
 use Exception;
+use Throwable;
 
 
 class Tool
 {
+
+	/**
+	 * 计时器存储
+	 * @var array<string, float>
+	 */
+	private static array $timeit = [];
 
 
 	private static function getConfig(): array
@@ -21,8 +28,8 @@ class Tool
 			//验证失败错误如何返回 (immediate:立即返回,集中返回:collective)
 			'error_return_mode' => 'immediate'
 		];
-		if (function_exists('config')) {
-			$config = config('plugin.jeckleee.tools.app', $config);
+		if (\function_exists('config')) {
+			$config = \call_user_func('config', 'plugin.jeckleee.tools.app', $config);
 		}
 		return $config;
 	}
@@ -196,7 +203,7 @@ class Tool
 	}
 
 	/**
-	 * 生成uuid
+	 * 生成不安全的uuid
 	 * @return string
 	 */
 	public static function generateUUID(): string
@@ -222,4 +229,329 @@ class Tool
 			mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
 		);
 	}
+
+
+
+
+
+
+	/**
+	 * 按键分组
+	 * @param array $array
+	 * @param string|callable $key 键名或回调 (fn($item): string|int)
+	 * @return array
+	 */
+	public static function arrayGroupBy(array $array, string|callable $key): array
+	{
+		$groups = [];
+		foreach ($array as $item) {
+			$groupKey = is_callable($key) ? $key($item) : (is_array($item) && array_key_exists($key, $item) ? $item[$key] : null);
+			$groupKey = (string)$groupKey;
+			$groups[$groupKey][] = $item;
+		}
+		return $groups;
+	}
+
+	/**
+	 * 按键去重(稳定去重，保留首次出现)
+	 * @param array $array
+	 * @param string|callable $key 键名或回调 (fn($item): string|int)
+	 * @return array
+	 */
+	public static function arrayUniqueBy(array $array, string|callable $key): array
+	{
+		$seen = [];
+		$result = [];
+		foreach ($array as $item) {
+			$k = is_callable($key) ? $key($item) : (is_array($item) && array_key_exists($key, $item) ? $item[$key] : null);
+			$k = (string)$k;
+			if (!array_key_exists($k, $seen)) {
+				$seen[$k] = true;
+				$result[] = $item;
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * 定长分块
+	 * @param array $array
+	 * @param int $size
+	 * @return array
+	 */
+	public static function arrayChunkFixed(array $array, int $size): array
+	{
+		$config = self::getConfig();
+		if ($size <= 0) {
+			throw new $config['exception']('分块大小必须大于0', $config['exception_code']);
+		}
+		return array_chunk($array, $size);
+	}
+
+	/**
+	 * 二分分组：按谓词拆分为 [匹配, 不匹配]
+	 * @param array $array
+	 * @param callable $predicate fn($item, $index): bool
+	 * @return array{0: array, 1: array}
+	 */
+	public static function arrayPartition(array $array, callable $predicate): array
+	{
+		$truthy = [];
+		$falsy = [];
+		foreach ($array as $i => $item) {
+			if ($predicate($item, $i)) {
+				$truthy[] = $item;
+			} else {
+				$falsy[] = $item;
+			}
+		}
+		return [$truthy, $falsy];
+	}
+
+	/**
+	 * 人性化时间差，如：刚刚、3分钟前、2小时前、5天前
+	 * @param DateTime|string $datetime
+	 * @return string
+	 */
+	public static function humanizeDiff(DateTime|string $datetime): string
+	{
+		$now = new DateTime('now');
+		$dt = $datetime instanceof DateTime ? $datetime : new DateTime($datetime);
+		$diffSeconds = (int)($now->format('U') - $dt->format('U'));
+		if ($diffSeconds <= 5) return '刚刚';
+		if ($diffSeconds < 60) return $diffSeconds . '秒前';
+		$minutes = intdiv($diffSeconds, 60);
+		if ($minutes < 60) return $minutes . '分钟前';
+		$hours = intdiv($minutes, 60);
+		if ($hours < 24) return $hours . '小时前';
+		$days = intdiv($hours, 24);
+		if ($days < 30) return $days . '天前';
+		return $dt->format('Y-m-d H:i');
+	}
+
+	/**
+	 * 安全 UUID v4
+	 * @return string
+	 * @throws \Exception
+	 */
+	public static function uuidV4(): string
+	{
+		$data = random_bytes(16);
+		$data[6] = chr(ord($data[6]) & 0x0f | 0x40); // version 4
+		$data[8] = chr(ord($data[8]) & 0x3f | 0x80); // variant RFC 4122
+		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+	}
+
+	/**
+	 * UUID v7 (时间有序)
+	 * @return string
+	 * @throws \Exception
+	 */
+	public static function uuidV7(): string
+	{
+		$ms = (int) floor(microtime(true) * 1000);
+		$timeHex = str_pad(dechex($ms), 12, '0', STR_PAD_LEFT); // 48 bits
+		$timeBin = hex2bin($timeHex);
+		$rand = random_bytes(10);
+		$bytes = $timeBin . $rand; // 16 bytes
+		$bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x70); // version 7
+		$bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80); // variant RFC 4122
+		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
+	}
+
+	/**
+	 * 生成安全随机整数
+	 * @param int $min
+	 * @param int $max
+	 * @return int
+	 */
+	public static function randomInt(int $min, int $max): int
+	{
+		$config = self::getConfig();
+		if ($min > $max) {
+			throw new $config['exception']('randomInt: 最小值不能大于最大值', $config['exception_code']);
+		}
+		return random_int($min, $max);
+	}
+
+	/**
+	 * 生成随机浮点数（含最小值，含最大值）
+	 * @param float $min
+	 * @param float $max
+	 * @return float
+	 */
+	public static function randomFloat(float $min, float $max): float
+	{
+		$config = self::getConfig();
+		if ($min > $max) {
+			throw new $config['exception']('randomFloat: 最小值不能大于最大值', $config['exception_code']);
+		}
+		if ($min === $max) return $min;
+		$scale = random_int(0, PHP_INT_MAX) / PHP_INT_MAX; // [0,1]
+		return $min + ($max - $min) * $scale;
+	}
+
+	/**
+	 * 构建稳定排序的查询字符串（RFC3986）
+	 * @param array $params
+	 * @return string
+	 */
+	public static function buildQuery(array $params): string
+	{
+		$normalized = $params;
+		self::ksortRecursive($normalized);
+		return http_build_query($normalized, '', '&', PHP_QUERY_RFC3986);
+	}
+
+	/**
+	 * 人类可读的字节展示，如 1.23 MB
+	 * @param int|float $bytes
+	 * @param int $precision
+	 * @return string
+	 */
+	public static function humanBytes(int|float $bytes, int $precision = 2): string
+	{
+		$units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+		$bytes = max(0, (float)$bytes);
+		$pow = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
+		$pow = (int)min($pow, count($units) - 1);
+		$value = $bytes / (1024 ** $pow);
+		return number_format($value, $precision) . ' ' . $units[$pow];
+	}
+
+	/**
+	 * 重试执行
+	 * @param callable $fn 执行体 fn(int $attempt): mixed
+	 * @param int $times 重试次数（含首次），默认3
+	 * @param int $sleepMs 每次重试间隔毫秒
+	 * @param callable|null $shouldRetry fn(Throwable $e, int $attempt): bool
+	 * @return mixed
+	 * @throws Throwable
+	 */
+	public static function retry(callable $fn, int $times = 3, int $sleepMs = 100, ?callable $shouldRetry = null): mixed
+	{
+		$config = self::getConfig();
+		if ($times <= 0) {
+			throw new $config['exception']('retry: 次数必须大于0', $config['exception_code']);
+		}
+		$attempt = 0;
+		while (true) {
+			$attempt++;
+			try {
+				return $fn($attempt);
+			} catch (Throwable $e) {
+				if ($attempt >= $times) {
+					throw $e;
+				}
+				if ($shouldRetry !== null && !$shouldRetry($e, $attempt)) {
+					throw $e;
+				}
+				if ($sleepMs > 0) {
+					usleep($sleepMs * 1000);
+				}
+			}
+		}
+	}
+
+
+
+	/**
+	 * 扁平化树
+	 * @param array $tree
+	 * @param string $children
+	 * @return array
+	 */
+	public static function flattenTree(array $tree, string $children = 'children'): array
+	{
+		$flat = [];
+		$stack = $tree;
+		while ($stack) {
+			$node = array_shift($stack);
+			$nodeCopy = $node;
+			if (is_array($nodeCopy) && array_key_exists($children, $nodeCopy)) {
+				$child = $nodeCopy[$children];
+				unset($nodeCopy[$children]);
+				if (is_array($child)) {
+					$stack = array_merge($child, $stack);
+				}
+			}
+			$flat[] = $nodeCopy;
+		}
+		return $flat;
+	}
+
+	/**
+	 * 在树中查找符合谓词的节点
+	 * @param array $tree
+	 * @param callable $predicate fn(array $node): bool
+	 * @param string $children
+	 * @return array|null
+	 */
+	public static function findInTree(array $tree, callable $predicate, string $children = 'children'): ?array
+	{
+		foreach ($tree as $node) {
+			if ($predicate($node)) {
+				return $node;
+			}
+			if (isset($node[$children]) && is_array($node[$children])) {
+				$found = self::findInTree($node[$children], $predicate, $children);
+				if ($found !== null) return $found;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 查找节点路径
+	 * @param array $tree
+	 * @param mixed $id
+	 * @param string $idField
+	 * @param string $children
+	 * @return array 路径数组(从根到目标)，未找到返回空数组
+	 */
+	public static function pathInTree(array $tree, mixed $id, string $idField = 'id', string $children = 'children'): array
+	{
+		$path = [];
+		$found = self::pathInTreeDfs($tree, $id, $idField, $children, $path);
+		return $found ? $path : [];
+	}
+
+	/**
+	 * 掩码敏感信息
+	 * @param string $value
+	 * @param int $left
+	 * @param int $right
+	 * @param string $maskChar
+	 * @param int|null $maxLength
+	 * @return string
+	 */
+	public static function maskSecret(string $value, int $left = 2, int $right = 2, string $maskChar = '*', ?int $maxLength = null): string
+	{
+		if ($maxLength === null) {
+			return self::desensitizeString($value, $left, $right, $maskChar);
+		}
+		return self::desensitizeString($value, $left, $right, $maskChar, $maxLength);
+	}
+
+	/**
+	 * 递归按键排序（仅关联数组）
+	 * @param array $array
+	 * @return void
+	 */
+	private static function ksortRecursive(array &$array): void
+	{
+		$keys = array_keys($array);
+		$sequential = $keys === array_keys($keys);
+		if (!$sequential) {
+			ksort($array);
+		}
+		foreach ($array as &$value) {
+			if (is_array($value)) {
+				self::ksortRecursive($value);
+			}
+		}
+	}
+
+
+
 }
