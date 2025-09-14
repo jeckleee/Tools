@@ -432,40 +432,124 @@ $randomStr = Tool::getRandomString(16);
 $days = Tool::diffDateDays('2024-01-01', '2024-01-10');
 
 // 字符串脱敏
-$masked = Tool::desensitizeString('13812345678', 3, 4);
+$masked = Tool::maskSecret('13812345678', 3, 4);
 
 // 生成 UUID
 $uuid = Tool::generateUUID();
+
+// 安全 UUID v4 / 时间有序 UUID v7
+$uuid4 = Tool::uuidV4();
+$uuid7 = Tool::uuidV7();
+
+// 安全随机数
+$ri = Tool::randomInt(1, 100);
+$rf = Tool::randomFloat(0.1, 9.9);
+
+// 人性化时间差与字节显示
+$diff = Tool::humanizeDiff('2025-01-01 12:00:00'); // 如："3天前"
+$size = Tool::humanBytes(1234567); // 1.18 MB
+
+// 稳定排序构建查询串（RFC3986）
+$query = Tool::buildQuery(['b'=>2, 'a'=>['y'=>2, 'x'=>1]]); // a%5Bx%5D=1&a%5By%5D=2&b=2
+
+// 分组、去重、分块、二分
+$groups = Tool::arrayGroupBy([
+  ['id'=>1,'cat'=>'A'],
+  ['id'=>2,'cat'=>'B'],
+  ['id'=>3,'cat'=>'A'],
+], 'cat');
+// [ 'A' => [...], 'B' => [...] ]
+
+$uniq = Tool::arrayUniqueBy([
+  ['id'=>1,'name'=>'x'],
+  ['id'=>1,'name'=>'x2'],
+  ['id'=>2,'name'=>'y'],
+], 'id'); // 稳定去重，保留首次出现
+
+$chunks = Tool::arrayChunkFixed([1,2,3,4,5], 2); // [[1,2],[3,4],[5]]
+
+[$evens, $odds] = Tool::arrayPartition([1,2,3,4], fn($n)=> $n%2===0);
+
+// 树相关：扁平化、查找、路径
+$flat = Tool::flattenTree($tree, 'children');
+$found = Tool::findInTree($tree, fn($node)=> ($node['id']??null) === 5);
+$pathInTree = Tool::pathInTree($tree, 5, 'id', 'children'); // 从根到目标的路径数组
+
+// 从扁平数组追溯路径
+$flatNodes = [
+  ['id'=>1,'parent_id'=>null],
+  ['id'=>2,'parent_id'=>1],
+  ['id'=>5,'parent_id'=>2],
+];
+$path = Tool::pathInFlat($flatNodes, 5, 'id', 'parent_id');
+
+// 重试工具
+$result = Tool::retry(function(int $attempt){
+  if ($attempt < 3) throw new Exception('try again');
+  return 'ok';
+}, times: 5, sleepMs: 100);
 ```
 
 ### 工具函数说明
 
 - **Tool::arrayBindKey($arr, $key)**
-  - 作用：将二维数组按某字段转为以该字段为 key 的关联数组。
+  - 作用：二维数组按某字段转为以该字段为 key 的关联数组。
   - 示例：
     ```php
     $arr = [['id'=>1,'name'=>'A'], ['id'=>2,'name'=>'B']];
     $res = Tool::arrayBindKey($arr, 'id');
-    // $res = [1=>['id'=>1,'name'=>'A'], 2=>['id'=>2,'name'=>'B']]
+    // [1=>['id'=>1,'name'=>'A'], 2=>['id'=>2,'name'=>'B']]
     ```
 - **Tool::arraySequence($arr, $field, $sort = 'SORT_DESC')**
-  - 作用：按指定字段排序。
+  - 作用：按指定字段排序，支持 SORT_ASC/SORT_DESC。
   - 示例：
     ```php
     $arr = [['id'=>1,'age'=>20], ['id'=>2,'age'=>18]];
     $res = Tool::arraySequence($arr, 'age', 'SORT_ASC');
-    // $res = [['id'=>2,'age'=>18], ['id'=>1,'age'=>20]]
+    // [['id'=>2,'age'=>18], ['id'=>1,'age'=>20]]
     ```
-- **Tool::generateTree($list, $id, $pid, $children)**
-  - 作用：生成树形结构。
-- **Tool::getRandomString($len)**
-  - 作用：生成指定长度的随机字符串。
-- **Tool::diffDateDays($date1, $date2)**
-  - 作用：计算两个日期相差天数。
-- **Tool::desensitizeString($str, $start, $end)**
-  - 作用：字符串脱敏。
+- **Tool::arrayGroupBy($arr, string|callable $key)**
+  - 作用：按键名或回调分组，返回键为字符串的分组映射。
+- **Tool::arrayUniqueBy($arr, string|callable $key)**
+  - 作用：按键稳定去重，保留首次出现的元素。
+- **Tool::arrayChunkFixed($arr, int $size)**
+  - 作用：按固定长度分块，size<=0 时返回原数组。
+- **Tool::arrayPartition($arr, callable $predicate)**
+  - 作用：按谓词拆分为 [匹配数组, 不匹配数组]。
+- **Tool::generateTree($list, $idField='id', $parentField='p_id', $children='children')**
+  - 作用：生成树形结构（基于父子引用）。
+- **Tool::flattenTree($tree, $children='children')**
+  - 作用：扁平化树，移除子节点字段。
+- **Tool::findInTree($tree, callable $predicate, $children='children')**
+  - 作用：在树中查找首个满足条件的节点。
+- **Tool::pathInTree($tree, mixed $id, $idField='id', $children='children')**
+  - 作用：返回从根到目标节点的路径数组，未找到返回空数组。
+- **Tool::pathInFlat($flat, mixed $id, $idField='id', $parentField='parent_id')**
+  - 作用：在扁平数组中自底向上追溯父级路径。
+- **Tool::getRandomString(int $length)**
+  - 作用：生成长度为 length 的随机字符串（URL 安全字符集）。
+- **Tool::maskSecret(string $str, int $startKeep, int $endKeep, string $mask='*', ?int $maxLen=null)**
+  - 作用：字符串脱敏，支持多字节字符与最大长度限制。
+- **Tool::humanizeDiff(DateTime|string $datetime)**
+  - 作用：人性化时间差：刚刚/秒前/分钟前/小时前/天前/日期时间。
+- **Tool::humanBytes(int|float $bytes, int $precision=2)**
+  - 作用：人类可读的字节单位展示（B/KB/MB/GB/TB/PB）。
+- **Tool::buildQuery(array $params)**
+  - 作用：递归键排序后，按 RFC3986 规则构建查询字符串，稳定可复现。
 - **Tool::generateUUID()**
-  - 作用：生成 UUID。
+  - 作用：基于 mt_rand 的不安全 UUID（非加密安全）。
+- **Tool::uuidV4()**
+  - 作用：安全 UUID v4（random_bytes），RFC 4122 兼容。
+- **Tool::uuidV7()**
+  - 作用：时间有序的 UUID v7，便于索引与排序。
+- **Tool::randomInt(int $min, int $max)**
+  - 作用：生成加密安全的随机整数（含边界）。
+- **Tool::randomFloat(float $min, float $max)**
+  - 作用：生成 [min, max] 区间随机浮点数。
+- **Tool::diffDateDays(string $date1, string $date2)**
+  - 作用：计算两个日期间相差天数。
+- **Tool::retry(callable $fn, int $times=3, int $sleepMs=100, ?callable $shouldRetry=null)**
+  - 作用：失败自动重试；可自定义重试判定与重试间隔。
 
 ---
 
