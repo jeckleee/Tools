@@ -215,24 +215,32 @@ class Tool
 		// 获取字符串的长度（字符数，支持多字节字符）
 		$length = mb_strlen($inputString, 'UTF-8');
 
-		// 如果字符串长度小于等于开头和结尾保留的长度之和，则直接返回原字符串
+		if ($length === 0) {
+			return '';
+		}
+
+		// 长度不足时开头与末尾保留区间会重叠，至少脱敏一个字符
 		if ($length <= ($startLength + $endLength)) {
-			return $inputString;
+			$actualStartLength = min($startLength, $length - 1);
+			$actualEndLength = min($endLength, max(0, $length - $actualStartLength - 1));
+		} else {
+			$actualStartLength = $startLength;
+			$actualEndLength = $endLength;
 		}
 
 		// 截取开头保留的部分（使用多字节安全函数）
-		$start = mb_substr($inputString, 0, $startLength, 'UTF-8');
+		$start = mb_substr($inputString, 0, $actualStartLength, 'UTF-8');
 
 		// 截取结尾保留的部分（使用多字节安全函数）
-		$end = mb_substr($inputString, -$endLength, null, 'UTF-8');
+		$end = $actualEndLength > 0 ? mb_substr($inputString, -$actualEndLength, null, 'UTF-8') : '';
 
 		// 计算需要替换的部分的长度
-		$maskLength = $length - $startLength - $endLength;
+		$maskLength = $length - $actualStartLength - $actualEndLength;
 
 		// 如果设置了最大长度，并且脱敏后的字符串长度超过最大长度
-		if ($maxLength !== null && ($startLength + $endLength + $maskLength) > $maxLength) {
+		if ($maxLength !== null && ($actualStartLength + $actualEndLength + $maskLength) > $maxLength) {
 			// 计算允许的 * 号的最大数量
-			$allowedMaskLength = $maxLength - $startLength - $endLength;
+			$allowedMaskLength = $maxLength - $actualStartLength - $actualEndLength;
 			// 如果允许的 * 号数量小于 0，则只保留开头和结尾的部分
 			if ($allowedMaskLength < 0) {
 				return $start . $end;
