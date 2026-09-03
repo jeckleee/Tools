@@ -118,7 +118,7 @@ class Validator
 
 	/**
 	 * @param array $input
-	 * @param $rules
+	 * @param array $rules
 	 * @param $customException
 	 * @param $err_code
 	 * @param $error_return_mode
@@ -137,18 +137,24 @@ class Validator
 
 	/**
 	 * @param array $input
-	 * @param $rules
+	 * @param array $rule
 	 * @param $customException
 	 * @param $err_code
 	 * @param $error_return_mode
-	 * @return false|mixed
+	 * @return mixed
 	 * @throws $customException
 	 */
-	public static function one(array $input, $rules, $customException = null, $err_code = null, $error_return_mode = null): mixed
+	public static function one(array $input, array $rule, $customException = null, $err_code = null, $error_return_mode = null): mixed
 	{
 		$validator = new static();
 		$validator->initialize($input, $customException, $err_code, $error_return_mode);
-		$validator->applyRules($rules);
+		if (!array_key_exists('fieldName', $rule) && isset($rule[0]) && is_array($rule[0])) {
+			$rule = $rule[0];
+		}
+		if (!array_key_exists('fieldName', $rule)) {
+			throw new self::$customException('V::one() 需要一个由 V::field("字段名")->verify() 生成的字段规则', self::$err_code);
+		}
+		$validator->applyRules([$rule]);
 		return reset(self::$output);
 	}
 
@@ -246,7 +252,8 @@ class Validator
 		$config = self::getConfig();
 		$collective_error = [];
 		foreach ($rules as $rule) {
-			if (!is_array($rule)) throw new self::$customException('须在每个验证规则的末尾调用->verify()方法', self::$err_code);
+			if (!is_array($rule))
+				throw new self::$customException('须在每个验证规则的末尾调用->verify()方法', self::$err_code);
 			if ($rule['list'] ?? false) {
 				foreach ($rule['list'] as $item) {
 					if (isset($item['_function_name']) && $item['_function_name'] === 'ifExisted' && !isset(self::$input[$rule['fieldName']])) {
@@ -412,7 +419,7 @@ class Validator
 
 			// 处理科学计数法
 			if (is_string($fieldValue) && (strpos($fieldValue, 'e') !== false || strpos($fieldValue, 'E') !== false)) {
-				$floatValue = (float)$fieldValue;
+				$floatValue = (float) $fieldValue;
 				self::$output[$fieldName] = $floatValue;
 				return;
 			}
@@ -425,14 +432,14 @@ class Validator
 			} elseif (is_string($fieldValue)) {
 				// 检查是否为整数字符串
 				if (preg_match('/^-?\d+$/', $fieldValue)) {
-					self::$output[$fieldName] = (int)$fieldValue;
+					self::$output[$fieldName] = (int) $fieldValue;
 				} else {
 					// 检查是否为浮点数字符串
 					if (preg_match('/^-?\d*\.\d+$/', $fieldValue)) {
-						self::$output[$fieldName] = (float)$fieldValue;
+						self::$output[$fieldName] = (float) $fieldValue;
 					} else {
 						// 其他数字格式（如科学计数法）
-						self::$output[$fieldName] = (float)$fieldValue;
+						self::$output[$fieldName] = (float) $fieldValue;
 					}
 				}
 			} else {
@@ -573,7 +580,7 @@ class Validator
 			$checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
 			$sum = 0;
 			for ($i = 0; $i < 17; $i++) {
-				$sum += $weights[$i] * (int)$fieldValue[$i];
+				$sum += $weights[$i] * (int) $fieldValue[$i];
 			}
 			$checkCodeIndex = $sum % 11;
 
@@ -723,7 +730,8 @@ class Validator
 		return $this->addRule(function ($fieldName, $fieldValue, $item) use ($symbol, $number) {
 			$msg = $item['err_msg'] ?: '参数' . $fieldName . '的值:' . $fieldValue . $symbol . $number . ' 不成立';
 
-			if (!is_numeric($fieldValue)) throw new self::$customException($msg, $item['err_code']);
+			if (!is_numeric($fieldValue))
+				throw new self::$customException($msg, $item['err_code']);
 
 			$res = match ($symbol) {
 				'>' => $fieldValue > $number,

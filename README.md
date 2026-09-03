@@ -152,10 +152,16 @@ $data = V::array($post, [
 
 ```php
 // 验证一个字段
-$age = V::one($post, [
-    V::field('age')->required()->isInt()->betweenNumber(1, 120)->verify('请填写正确的年龄'),
-]);
+$age = V::one(
+    $post,
+    V::field('age')->required()->isInt()->betweenNumber(1, 120)->verify('请填写正确的年龄')
+);
 echo $age; // 输出: 18
+
+// 兼容旧写法：传入规则数组时只验证第一条规则
+$age = V::one($post, [
+    V::field('age')->required()->isInt()->verify('请填写正确的年龄'),
+]);
 ```
 
 ### 3. 验证变量
@@ -174,11 +180,12 @@ if (V::var($phone)->isMobile()->check()) {
 
 ```php
 // 自定义验证方法, 只有回调方法返回 (bool) true 时, 才验证通过
-$data = V::one($post, [
+$data = V::one(
+    $post,
     V::field('age')->fun(function ($value) {
         return $value >= 18;
-    })->verify('年龄不能小于18岁'),
-]);
+    })->verify('年龄不能小于18岁')
+);
 ```
 
 ### 5. 条件必填验证
