@@ -861,7 +861,7 @@ class Validator
 	 * 3. Webman格式: support\UploadFile对象   使用方式V::field('avatar')-->isFile(request()->file())
 	 * 4. ThinkPHP8.0格式: think\file\UploadedFile对象   使用方式V::field('avatar')-->isFile(request()->file())
 	 * @param array $ext 允许的扩展名（如['jpg','png']），[]则不限制
-	 * @param int|null $maxSize 最大字节数，默认500KB
+	 * @param int|null $maxSize_Kb 最大字节数，默认500KB
 	 * @return Validator
 	 */
 	public function isFile(array|object|string $file, array $ext = [], int $maxSize_Kb = 500): Validator
