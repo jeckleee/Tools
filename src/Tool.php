@@ -83,10 +83,8 @@ class Tool
 
 	/**
 	 * 二维数组根据字段进行绑定到唯一键
-	 * @params array $array 需要绑定的数组
-	 * @params string $key 绑定的键
-	 * @param array $array
-	 * @param $key
+	 * @param array $array 需要绑定的数组
+	 * @param string $key 绑定的键
 	 * @return array
 	 */
 	public static function arrayBindKey(array $array, $key): array
@@ -104,21 +102,23 @@ class Tool
 
 	/**
 	 * 二维数组根据字段进行排序
-	 * @params array $array 需要排序的数组
-	 * @params string $field 排序的字段
-	 * @params string $sort 排序顺序标志 SORT_DESC 降序；SORT_ASC 升序
+	 * @param array $array 需要排序的数组
+	 * @param string $field 排序的字段
+	 * @param string $sort 排序顺序标志 SORT_DESC 降序；SORT_ASC 升序
+	 * @return array
 	 */
 	public static function arraySequence(array $array, string $field, string $sort = 'SORT_DESC'): array
 	{
 		$config = self::getConfig();
-		if ($array == []) return [];
+		if ($array == [])
+			return [];
 		// 验证排序方式是否有效
 		if (!defined($sort)) {
 			throw new $config['exception']("排序方式 '$sort' 无效。", $config['exception_code']);
 		}
 		// 验证数组中是否存在指定的字段
 		if (!array_key_exists($field, $array[0])) {
-			throw new  $config['exception']("字段 '$field' 不存在于数组中。", $config['exception_code']);
+			throw new $config['exception']("字段 '$field' 不存在于数组中。", $config['exception_code']);
 		}
 		// 初始化用于排序的数组
 		$arrSort = array();
@@ -134,7 +134,7 @@ class Tool
 
 		// 如果指定的字段不存在于排序数组中，抛出异常
 		if (!array_key_exists($field, $arrSort)) {
-			throw new  $config['exception']("字段 '$field' 在数组中不存在，无法进行排序。");
+			throw new $config['exception']("字段 '$field' 在数组中不存在，无法进行排序。");
 		}
 		// 使用array_multisort进行排序
 		array_multisort($arrSort[$field], constant($sort), $array);
@@ -300,7 +300,7 @@ class Tool
 		$groups = [];
 		foreach ($array as $item) {
 			$groupKey = is_callable($key) ? $key($item) : (is_array($item) && array_key_exists($key, $item) ? $item[$key] : null);
-			$groupKey = (string)$groupKey;
+			$groupKey = (string) $groupKey;
 			$groups[$groupKey][] = $item;
 		}
 		return $groups;
@@ -318,7 +318,7 @@ class Tool
 		$result = [];
 		foreach ($array as $item) {
 			$k = is_callable($key) ? $key($item) : (is_array($item) && array_key_exists($key, $item) ? $item[$key] : null);
-			$k = (string)$k;
+			$k = (string) $k;
 			if (!array_key_exists($k, $seen)) {
 				$seen[$k] = true;
 				$result[] = $item;
@@ -335,7 +335,8 @@ class Tool
 	 */
 	public static function arrayChunkFixed(array $array, int $size): array
 	{
-		if ($size <= 0) return $array;
+		if ($size <= 0)
+			return $array;
 		return array_chunk($array, $size);
 	}
 
@@ -368,22 +369,26 @@ class Tool
 	{
 		$now = new DateTime('now');
 		$dt = $datetime instanceof DateTime ? $datetime : new DateTime($datetime);
-		$diffSeconds = (int)($now->format('U') - $dt->format('U'));
-		if ($diffSeconds <= 5) return '刚刚';
-		if ($diffSeconds < 60) return $diffSeconds . '秒前';
+		$diffSeconds = (int) ($now->format('U') - $dt->format('U'));
+		if ($diffSeconds <= 5)
+			return '刚刚';
+		if ($diffSeconds < 60)
+			return $diffSeconds . '秒前';
 		$minutes = intdiv($diffSeconds, 60);
-		if ($minutes < 60) return $minutes . '分钟前';
+		if ($minutes < 60)
+			return $minutes . '分钟前';
 		$hours = intdiv($minutes, 60);
-		if ($hours < 24) return $hours . '小时前';
+		if ($hours < 24)
+			return $hours . '小时前';
 		$days = intdiv($hours, 24);
-		if ($days < 30) return $days . '天前';
+		if ($days < 30)
+			return $days . '天前';
 		return $dt->format('Y-m-d H:i');
 	}
 
 	/**
 	 * 安全 UUID v4
 	 * @return string
-	 * @throws \Exception
 	 */
 	public static function uuidV4(): string
 	{
@@ -396,7 +401,6 @@ class Tool
 	/**
 	 * UUID v7 (时间有序)
 	 * @return string
-	 * @throws \Exception
 	 */
 	public static function uuidV7(): string
 	{
@@ -437,7 +441,8 @@ class Tool
 		if ($min > $max) {
 			throw new $config['exception']('randomFloat: 最小值不能大于最大值', $config['exception_code']);
 		}
-		if ($min === $max) return $min;
+		if ($min === $max)
+			return $min;
 		$scale = random_int(0, PHP_INT_MAX) / PHP_INT_MAX; // [0,1]
 		return $min + ($max - $min) * $scale;
 	}
@@ -463,9 +468,9 @@ class Tool
 	public static function humanBytes(int|float $bytes, int $precision = 2): string
 	{
 		$units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-		$bytes = max(0, (float)$bytes);
+		$bytes = max(0, (float) $bytes);
 		$pow = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
-		$pow = (int)min($pow, count($units) - 1);
+		$pow = (int) min($pow, count($units) - 1);
 		$value = $bytes / (1024 ** $pow);
 		return number_format($value, $precision) . ' ' . $units[$pow];
 	}
@@ -546,7 +551,8 @@ class Tool
 			}
 			if (isset($node[$children]) && is_array($node[$children])) {
 				$found = self::findInTree($node[$children], $predicate, $children);
-				if ($found !== null) return $found;
+				if ($found !== null)
+					return $found;
 			}
 		}
 		return null;
