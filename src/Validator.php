@@ -19,7 +19,7 @@ class Validator
 	/**
 	 * @var string|null
 	 */
-	private static string|null $customException = null;
+	private static ?string $customException = null;
 	/**
 	 * @var int
 	 */
