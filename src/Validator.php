@@ -113,9 +113,28 @@ class Validator
 		return $config;
 	}
 
+	/**
+	 * @param array $input
+	 * @param $customException
+	 * @param $err_code
+	 * @param $error_return_mode
+	 * @return void
+	 */
+	private static function initialize(array $input, $customException = null, $err_code = null, $error_return_mode = null): void
+	{
+		$config = self::getConfig();
+		self::$customException = $customException ?: $config['exception'];
+		self::$err_code = $err_code ?: $config['exception_code'];
+
+		if ($error_return_mode && !in_array($error_return_mode, ['immediate', 'collective'])) {
+			throw new self::$customException('error_return_mode参数错误', self::$err_code);
+		}
+		self::$input = $input;
+		self::$output = [];
+	}
+
 
 	//验证方式1:返回数组
-
 	/**
 	 * @param array $input
 	 * @param array $rules
@@ -134,7 +153,6 @@ class Validator
 	}
 
 	//验证方式2:返回字段的值
-
 	/**
 	 * @param array $input
 	 * @param array $rule
@@ -182,6 +200,71 @@ class Validator
 		return $this->rules;
 	}
 
+	/**
+	 * @param callable $function
+	 * @param array $additionalParams
+	 * @return Validator
+	 */
+	private function addRule(callable $function, array $additionalParams = []): Validator
+	{
+		$this->rules['list'][] = array_merge([
+			'function' => $function,
+		], $additionalParams);
+		return $this;
+	}
+
+
+	/**
+	 * @param array $rules
+	 * @return void
+	 * @throws $customException
+	 */
+	private static function applyRules(array $rules): void
+	{
+		$config = self::getConfig();
+		$collective_error = [];
+		foreach ($rules as $rule) {
+			if (!is_array($rule))
+				throw new self::$customException('须在每个验证规则的末尾调用->verify()方法', self::$err_code);
+			if ($rule['list'] ?? false) {
+				foreach ($rule['list'] as $item) {
+					if (isset($item['_function_name']) && $item['_function_name'] === 'ifExisted' && !isset(self::$input[$rule['fieldName']])) {
+						break;
+					}
+					$function = $item['function'];
+					$fieldName = $rule['fieldName'];
+					$fieldValue = self::$input[$rule['fieldName']] ?? null;
+					$item['err_msg'] = $rule['err_msg'] ?? '';
+					$item['err_code'] = $rule['err_code'] ?? self::$err_code;
+					try {
+						$function($fieldName, $fieldValue, $item); // 调用闭包
+						// required 使用了默认值时, 不再对该字段执行后续验证规则
+						if (($item['_function_name'] ?? '') === 'required' && $fieldValue === null && $item['def'] !== null) {
+							break;
+						}
+					} catch (Exception $e) {
+						if ($config['error_return_mode'] === 'collective' && $e instanceof $config['exception']) {
+							$collective_error[] = [
+								'fieldName' => $rule['fieldName'],
+								'error_code' => $e->getCode(),
+								'message' => $e->getMessage(),
+							];
+							continue;
+						} else {
+							// 如果不是预期的异常类型,重新抛出
+							throw $e;
+						}
+					}
+				}
+			} else {
+				//没有任何验证规则时
+				self::$output[$rule['fieldName']] = self::$input[$rule['fieldName']] ?? null;
+			}
+		}
+		if ($collective_error) {
+			throw new self::$customException(json_encode($collective_error), self::$err_code);
+		}
+	}
 
 	/**
 	 * @param $variable
@@ -222,88 +305,6 @@ class Validator
 
 
 	/**
-	 * @param array $input
-	 * @param $customException
-	 * @param $err_code
-	 * @param $error_return_mode
-	 * @return void
-	 */
-	private static function initialize(array $input, $customException = null, $err_code = null, $error_return_mode = null): void
-	{
-		$config = self::getConfig();
-		self::$customException = $customException ?: $config['exception'];
-		self::$err_code = $err_code ?: $config['exception_code'];
-
-		if ($error_return_mode && !in_array($error_return_mode, ['immediate', 'collective'])) {
-			throw new self::$customException('error_return_mode参数错误', self::$err_code);
-		}
-		self::$input = $input;
-		self::$output = [];
-	}
-
-
-	/**
-	 * @param array $rules
-	 * @return void
-	 * @throws $customException
-	 */
-	private static function applyRules(array $rules): void
-	{
-		$config = self::getConfig();
-		$collective_error = [];
-		foreach ($rules as $rule) {
-			if (!is_array($rule))
-				throw new self::$customException('须在每个验证规则的末尾调用->verify()方法', self::$err_code);
-			if ($rule['list'] ?? false) {
-				foreach ($rule['list'] as $item) {
-					if (isset($item['_function_name']) && $item['_function_name'] === 'ifExisted' && !isset(self::$input[$rule['fieldName']])) {
-						break;
-					}
-					$function = $item['function'];
-					$fieldName = $rule['fieldName'];
-					$fieldValue = self::$input[$rule['fieldName']] ?? null;
-					$item['err_msg'] = $rule['err_msg'] ?? '';
-					$item['err_code'] = $rule['err_code'] ?? self::$err_code;
-					try {
-						$function($fieldName, $fieldValue, $item); // 调用闭包
-					} catch (Exception $e) {
-						if ($config['error_return_mode'] === 'collective' && $e instanceof $config['exception']) {
-							$collective_error[] = [
-								'fieldName' => $rule['fieldName'],
-								'error_code' => $e->getCode(),
-								'message' => $e->getMessage(),
-							];
-							continue;
-						} else {
-							// 如果不是预期的异常类型,重新抛出
-							throw $e;
-						}
-					}
-				}
-			} else {
-				//没有任何验证规则时
-				self::$output[$rule['fieldName']] = self::$input[$rule['fieldName']] ?? null;
-			}
-		}
-		if ($collective_error) {
-			throw new self::$customException(json_encode($collective_error), self::$err_code);
-		}
-	}
-
-	/**
-	 * @param callable $function
-	 * @param array $additionalParams
-	 * @return Validator
-	 */
-	private function addRule(callable $function, array $additionalParams = []): Validator
-	{
-		$this->rules['list'][] = array_merge([
-			'function' => $function,
-		], $additionalParams);
-		return $this;
-	}
-
-	/**
 	 * 校验: 要求字段必填
 	 * @param $def
 	 * @return Validator
@@ -320,7 +321,7 @@ class Validator
 			} else {
 				throw new self::$customException($msg, $item['err_code']);
 			}
-		});
+		}, ['_function_name' => 'required', 'def' => $def]);
 	}
 
 	/**
