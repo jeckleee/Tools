@@ -3,9 +3,9 @@
   "type": "library",
   "license": "MIT",
   "keywords": [
+    "validator",
     "webman",
-    "laravel",
-    "validator"
+    "laravel"
   ],
   "description": "Webman plugin jeckleee/tools",
   "require": {
